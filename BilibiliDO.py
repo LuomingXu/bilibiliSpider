@@ -32,6 +32,6 @@ class UserProfileDO(Base):
     self.rank = userProfile.data.rank
     self.level = userProfile.data.level
     self.birthday = userProfile.data.birthday
-    self.code = userProfile.data.coins
+    self.coins = userProfile.data.coins
     self.vip_type = userProfile.data.vip.type
     self.vip_status = userProfile.data.vip.status
