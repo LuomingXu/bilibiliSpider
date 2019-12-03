@@ -31,40 +31,11 @@
       "top_photo": "http://i0.hdslb.com/bfs/space/cb1c3ef50e22b6096fde67febe863494caefebad.png",
       "theme": {},
       "sys_notice": {}
-    }
-  },
-   {
-    "code": 0,
-    "message": "0",
-    "ttl": 1,
-    "data": {
-      "mid": 35633398,
-      "name": "GcfDelicacies",
-      "sex": "保密",
-      "face": "http://i0.hdslb.com/bfs/face/90251691644f6b2a5d4bd7a36ef03d12db291743.jpg",
-      "sign": "",
-      "rank": 10000,
-      "level": 5,
-      "jointime": 0,
-      "moral": 0,
-      "silence": 0,
-      "birthday": "12-31",
-      "coins": 111.1,
-      "fans_badge": false,
-      "official": {
-        "role": 0,
-        "title": "",
-        "desc": ""
-      },
-      "vip": {
-        "type": 0,
-        "status": 0,
-        "theme_type": 0
-      },
-      "is_followed": false,
-      "top_photo": "http://i0.hdslb.com/bfs/space/cb1c3ef50e22b6096fde67febe863494caefebad.png",
-      "theme": {},
-      "sys_notice": {}
-    }
+    },
+     "no_user_mid": [
+       718, 1397, 1600, 1912, 2630, 2631, 2734, 2943, 3288, 3289,
+       3290, 3291, 3314, 3433, 4804, 4874, 5424, 5631, 5651, 5652,
+       5669, 6720, 9236
+     ]
   }
 ]

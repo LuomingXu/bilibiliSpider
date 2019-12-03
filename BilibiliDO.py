@@ -1,5 +1,4 @@
 # encoding:utf-8
-import json
 
 from sqlalchemy import Column, String, BIGINT, INT, DECIMAL
 from sqlalchemy.ext.declarative import declarative_base

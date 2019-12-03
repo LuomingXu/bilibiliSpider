@@ -23,7 +23,7 @@ class Request(object):
     else:
       self.res = self.http.request('GET', url)
 
-  def put(self, url: str, body = None, **params: dict):
+  def put(self, url: str, body: object = None, **params: dict):
     """
     http put method
     :param url: URL

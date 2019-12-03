@@ -10,7 +10,7 @@ from db import DBSession
 from utils import ShowProcess, Logger
 
 if __name__ == '__main__':
-  max = 10000
+  max = 35633398
   process_bar = ShowProcess(max, 'Done')
   session = DBSession()
 
@@ -18,7 +18,7 @@ if __name__ == '__main__':
   DOs: List[UserProfileDO] = []
 
   log = Logger('error.log').logger
-  for i in range(501, max):
+  for i in range(10001, max):
     mid = {'mid': i}
     http.get('https://api.bilibili.com/x/space/acc/info', **mid)
 
@@ -43,4 +43,4 @@ if __name__ == '__main__':
       log.info(DOs.__len__())
 
     process_bar.show_process()
-    time.sleep(2.5)
+    time.sleep(2.25)
