@@ -5,7 +5,7 @@ from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.ext.declarative import declarative_base
 
 from online.AV import AV
-from utils import override_str
+from selfusepy.utils import override_str
 
 Base = declarative_base()
 

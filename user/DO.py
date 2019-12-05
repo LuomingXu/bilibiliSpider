@@ -1,10 +1,9 @@
-# encoding:utf-8
-
 from sqlalchemy import Column, String, BIGINT, INT, DECIMAL
+from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.ext.declarative import declarative_base
 
-from Bilibili import UserProfile
-from utils import override_str
+from user.Entity import UserProfile
+from selfusepy.utils import override_str
 
 Base = declarative_base()
 
@@ -23,6 +22,9 @@ class UserProfileDO(Base):
   coins = Column(DECIMAL(32, 2))
   vip_type = Column(INT)
   vip_status = Column(INT)
+  official_title = Column(String(100))
+  official_type = Column(TINYINT)
+  official_role = Column(TINYINT)
 
   def __init__(self, userProfile: UserProfile):
     self.mid = userProfile.data.mid
@@ -34,3 +36,6 @@ class UserProfileDO(Base):
     self.coins = userProfile.data.coins
     self.vip_type = userProfile.data.vip.type
     self.vip_status = userProfile.data.vip.status
+    self.official_title = userProfile.data.official.title
+    self.official_type = userProfile.data.official.type
+    self.official_role = userProfile.data.official.role

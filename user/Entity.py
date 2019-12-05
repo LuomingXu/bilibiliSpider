@@ -1,6 +1,4 @@
-# encoding:utf-8
-
-from utils import override_str
+from selfusepy.utils import override_str
 
 
 @override_str
@@ -47,6 +45,7 @@ class UserProfile(object):
         self.role: int = -1
         self.title: str = ''
         self.desc: str = ''
+        self.type: int = -1
 
     class Vip(object):
 

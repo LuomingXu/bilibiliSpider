@@ -1,4 +1,4 @@
-import selfusepy
+import selfusepy, crc32
 from typing import List, MutableMapping
 from bs4 import BeautifulSoup
 from db import DBSession, engine
@@ -34,9 +34,9 @@ def removeExist(cid: int, danmakuMap: MutableMapping[int, DanmakuDO],
   conn.close()
 
 
-if __name__ == '__main__':
+def __main__():
   session = DBSession()
-  log = Logger("error.log").logger
+  log = Logger("./error.log").logger
   chromeUserAgent: dict = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'}
 
@@ -60,6 +60,9 @@ if __name__ == '__main__':
       obj.send_time = datetime.fromtimestamp(int(l[4]), timezone(timedelta(hours = 8)))
       obj.danmaku_pool = int(l[5])
       obj.user_hash = int(l[6], 16)
+      value = crc32.get_value(l[6])
+      if value[0] > 0:
+        obj.user_id = value[1]
       obj.id = int(l[7])
 
       relation: DanmakuRealationDO = DanmakuRealationDO()
@@ -86,6 +89,7 @@ if __name__ == '__main__':
     else:
       print('cid:', avInfo.cid, '. Done.')
     finally:
+      session.close()
       print('danmakuMap.len:', danmakuMap.__len__())
       print('relationMap.len:', relationMap.__len__())
       danmakuMap.clear()
