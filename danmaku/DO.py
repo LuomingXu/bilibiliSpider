@@ -3,6 +3,7 @@ from sqlalchemy import Column, BIGINT, DATETIME, String, INTEGER, DECIMAL
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.ext.declarative import declarative_base
 from selfusepy.utils import override_str
+from danmaku.Entity import AvDanmakuCid
 
 Base = declarative_base()
 
@@ -45,3 +46,18 @@ class DanmakuDO(Base):
     self.user_hash = -1
     self.user_id = -1
     self.content = ''
+
+@override_str
+class AVCidsDO(Base):
+  __tablename__ = 'av_cids'
+
+  cid = Column(BIGINT, primary_key = True)
+  page = Column(INTEGER)
+  pagename = Column(String(500))
+  aid = Column(BIGINT)
+
+  def __init__(self, aid: int, obj: AvDanmakuCid):
+    self.cid = obj.cid
+    self.page = obj.page
+    self.pagename = obj.pagename
+    self.aid = aid

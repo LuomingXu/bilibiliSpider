@@ -55,3 +55,14 @@ create table av_stat
     dislike      int,
     online_count int comment '当前观看人数'
 );
+create index avStat_aid on av_stat (aid);
+create table av_cids
+(
+    cid       bigint not null primary key,
+    page      int    null,
+    page_name varchar(500),
+    aid       bigint not null
+);
+create index avCids_cid on av_cids (cid);
+create index avCids_aid on av_cids (aid);
+

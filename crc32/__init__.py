@@ -1,11 +1,10 @@
 import binascii
 from typing import List
-from selfusepy.utils import Logger
-from db import engine
-from crc32.DO import crc32DO
+
 from sqlalchemy.engine import ResultProxy
 
-log = Logger().logger
+from crc32.DO import crc32DO
+from db import engine, log
 
 
 def get_value(hash: str) -> (int, str):
