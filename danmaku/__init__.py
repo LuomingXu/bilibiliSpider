@@ -1,10 +1,9 @@
-from datetime import timezone, timedelta, datetime
-from typing import List, MutableMapping, Set
-
-import crc32
 import json
-import selfusepy
 import time
+from datetime import timezone, timedelta, datetime
+from typing import List, MutableMapping
+
+import selfusepy
 from bs4 import BeautifulSoup
 from bs4 import Tag
 from selfusepy import HTTPResponse
@@ -13,7 +12,7 @@ from sqlalchemy.engine import ResultProxy
 from danmaku.DO import DanmakuDO, DanmakuRealationDO, AVCidsDO
 from danmaku.Entity import AvDanmakuCid
 from db import DBSession, engine, log
-from online.AVDO import AVInfoDO
+from online.DO import AVInfoDO
 
 
 def removeExist(cid: int, danmakuMap: MutableMapping[int, DanmakuDO],

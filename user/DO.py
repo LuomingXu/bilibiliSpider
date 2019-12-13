@@ -19,7 +19,8 @@ class UserProfileDO(Base):
   rank = Column(INT)
   level = Column(INT)
   birthday = Column(String(50))
-  coins = Column(DECIMAL(32, 2))
+  sign = Column(String(500))
+  fans_badge = Column(TINYINT)
   vip_type = Column(INT)
   vip_status = Column(INT)
   official_title = Column(String(100))
@@ -33,7 +34,8 @@ class UserProfileDO(Base):
     self.rank = userProfile.data.rank
     self.level = userProfile.data.level
     self.birthday = userProfile.data.birthday
-    self.coins = userProfile.data.coins
+    self.sign = userProfile.data.sign
+    self.fans_badge = userProfile.data.fans_badge
     self.vip_type = userProfile.data.vip.type
     self.vip_status = userProfile.data.vip.status
     self.official_title = userProfile.data.official.title

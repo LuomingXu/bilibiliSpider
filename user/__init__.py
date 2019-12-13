@@ -10,47 +10,39 @@ from user.Entity import UserProfile
 
 
 def __main__(mids: Set[int]):
-  DOs: List[UserProfileDO] = []
-
+  session = DBSession()
   for i in mids:
-    if isExist(i):
-      continue
-
     mid = {'mid': i}
     res: HTTPResponse = selfusepy.get('https://api.bilibili.com/x/space/acc/info', **mid)
+    isUpdated: bool = False
 
     try:
       resData: UserProfile = selfusepy.parse_json(res.data, UserProfile())
-      DOs.append(UserProfileDO(resData))
+      dbData: UserProfileDO = session.query(UserProfileDO).filter_by(mid = i).first()
+      if dbData:  # 存在
+        resDbData: UserProfileDO = UserProfileDO(resData)
+        for item in vars(dbData).items():
+          if item[0].startswith('_'):
+            continue
+          try:
+            newValue = getattr(resDbData, item[0])
+            if newValue != item[1]:
+              isUpdated = True
+              log.info('[UPDATE] mid: %s, key: %s, new: %s, old: %s' % (i, item[0], newValue, item[1]))
+              setattr(dbData, item[0], newValue)
+          except Exception as e:
+            log.error(e.__str__())
+        if not isUpdated:
+          log.info('[EQUAL] mid: %s' % i)
+      else:
+        log.info('[INSERT] mid: %s' % i)
+        session.add(UserProfileDO(resData))
+
+      session.commit()
     except Exception as e:
       log.exception(e)
       log.info(i.__str__())
       log.info(res.data)
-      saveDOs(DOs)
     finally:
-      log.info('user sleep 5s')
-      time.sleep(5)
-  saveDOs(DOs)
-
-
-def isExist(mid: int):
-  session = DBSession()
-  obj: UserProfileDO = session.query(UserProfileDO).filter_by(mid = mid).first()
-  if obj:
-    return True
-  return False
-
-
-def saveDOs(DOs: List[UserProfileDO]):
-  session = DBSession()
-  try:
-    session.bulk_save_objects(DOs)
-    session.commit()
-    log.info('count: %s. insert success.' % DOs.__len__())
-  except Exception as e:
-    session.rollback()
-    log.exception(e)
-    log.info(DOs.__len__())
-  finally:
-    DOs.clear()
-    session.close()
+      log.info('[SLEEP] 2.5s')
+      time.sleep(2.5)

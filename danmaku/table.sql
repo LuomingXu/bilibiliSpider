@@ -21,4 +21,5 @@ create table danmaku
     content       varchar(1000) comment '弹幕内容'
 ) comment 'format: <d p="15.91600,1,25,16777215,1566961307,0,845a9310,20876693555642372">Content</d>.
 弹幕出现时间,模式,字体大小,颜色,发送时间戳,弹幕池,用户Hash,数据库ID';
-
+create index danmaku_userId on danmaku (user_id);
+create index danmaku_userHash on danmaku (user_hash);

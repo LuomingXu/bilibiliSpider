@@ -1,11 +1,11 @@
 from datetime import datetime, timezone, timedelta
 
+from selfusepy.utils import override_str
 from sqlalchemy import Column, BIGINT, DATETIME, String, INTEGER, PrimaryKeyConstraint
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.ext.declarative import declarative_base
 
-from online.AV import AV
-from selfusepy.utils import override_str
+from online.Entity import OnlineList
 
 Base = declarative_base()
 
@@ -55,7 +55,7 @@ class AVInfoDO(Base):
   last_update_time = Column(DATETIME, onupdate = datetime.now(timezone(timedelta(hours = 8))))
   create_time = Column(DATETIME, default = datetime.now(timezone(timedelta(hours = 8))))
 
-  def __init__(self, av: AV.OnlineList):
+  def __init__(self, av: OnlineList.AV):
     self.aid = av.aid
     self.videos = av.videos
     self.tid = av.tid
@@ -92,6 +92,7 @@ class AVInfoDO(Base):
     self.dimension_rotate = av.dimension.rotate
     self.last_update_time = datetime.now(timezone(timedelta(hours = 8)))
 
+
 @override_str
 class AVStatDO(Base):
   __tablename__ = 'av_stat'
@@ -110,7 +111,7 @@ class AVStatDO(Base):
   dislike = Column(INTEGER)
   online_count = Column(INTEGER)
 
-  def __init__(self, av: AV.OnlineList):
+  def __init__(self, av: OnlineList.AV):
     self.aid = av.stat.aid
     self.create_time = datetime.now(timezone(timedelta(hours = 8)))
     self.view = av.stat.view

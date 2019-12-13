@@ -1,13 +1,9 @@
-import re
-from datetime import datetime, timedelta, timezone
+import re, selfusepy
 from typing import List, Set
-
-import selfusepy
 from bs4 import BeautifulSoup, Tag
-
 from db import DBSession, log
-from online.AV import AV
-from online.AVDO import AVInfoDO, AVStatDO
+from online.DO import AVInfoDO, AVStatDO
+from online.Entity import OnlineList
 
 
 def __main__() -> (List[int], Set[int]):
@@ -25,42 +21,35 @@ def __main__() -> (List[int], Set[int]):
   pattern = re.compile(r'{([\s\S]*)\};')
   value = pattern.findall(script.prettify())
   temp = '{' + str(value[0]).replace('\\n', '') + '}'  # remove \n
-  obj: AV = selfusepy.parse_json(temp, AV())
+  obj: OnlineList = selfusepy.parse_json(temp, OnlineList())
 
   session = DBSession()
-  fileName = 'AVList-%s.json' % (datetime.now(timezone(timedelta(hours = 8))).strftime('%Y-%m-%d-%H-%M-%S%z'))
   for item in obj.onlineList:
     cidList.append(item.cid)
     midSet.add(item.owner.mid)
 
-    avInfo = AVInfoDO(item)
-    avStat = AVStatDO(item)
+    avInfoDO = AVInfoDO(item)
+    avStatDO = AVStatDO(item)
 
-    exist: AVInfoDO = session.query(AVInfoDO).filter_by(aid = avInfo.aid).first()
+    exist: AVInfoDO = session.query(AVInfoDO).filter_by(aid = avInfoDO.aid).first()
     if not exist:
       try:
-        session.add(avInfo)
-        session.add(avStat)
+        session.add(avInfoDO)
+        session.add(avStatDO)
         session.commit()
+        log.info('[INSERT] aid: %s' % avInfoDO.aid)
       except Exception as e:
         session.rollback()
-        fileName = 'AV-%s-%s.json' % (
-          avInfo.aid, datetime.now(timezone(timedelta(hours = 8))).strftime('%Y-%m-%d-%H-%M-%S%z'))
-        f = open(fileName, 'w', encoding = 'utf-8')
-        f.write(avInfo.__str__() + '---' + avStat.__str__())
-        log.error("error: %s, aid: %s" % (e, avInfo.aid))
+        log.error('aid: %s. %s' % (avInfoDO.aid, e))
     else:
       try:
-        session.add(avStat)
+        session.add(avStatDO)
         session.commit()
+        log.info('[UPDATE] [Statistics] aid: %s' % avInfoDO.aid)
       except Exception as e:
         session.rollback()
-        fileName = 'AV-%s-%s.json' % (
-          avStat.aid, datetime.now(timezone(timedelta(hours = 8))).strftime('%Y-%m-%d-%H-%M-%S%z'))
-        f = open(fileName, 'w', encoding = 'utf-8')
-        f.write(avStat.__str__())
         log.exception(e)
-        log.error("error: %s, aid: %s" % (e, avStat.aid))
+        log.error('aid: %s. %s' % (avInfoDO.aid, e))
 
   session.close()
   log.info('Done')
