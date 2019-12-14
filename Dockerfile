@@ -1,3 +1,3 @@
-FROM python:sprider
-ADD /python /home/python
+FROM spider:latest
+ADD ./ /home/python
 ENTRYPOINT python /home/python/main.py

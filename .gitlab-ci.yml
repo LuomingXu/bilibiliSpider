@@ -1,0 +1,43 @@
+image: docker:stable
+
+variables:
+  Cache_Location: /cache/$CI_PROJECT_NAME-$CI_PROJECT_ID-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
+  Image_Name: "bilibili-spider"
+
+stages:
+  - docker_build
+  - deploy
+
+docker:
+  stage: docker_build
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^v.*$/
+  script:
+    - pwd
+    - mkdir -p $Cache_Location
+    - cp -r ./* $Cache_Location/
+    - cd $Cache_Location/
+    - pwd
+    - image=$(echo $Image_Name:$CI_COMMIT_SHORT_SHA|tr [:upper:] [:lower:])
+    - docker build -t $image .
+    - docker tag $image $Image_Name:latest
+  tags:
+    - local-ci
+
+deploy:
+  image:
+    name: docker/compose:latest
+    entrypoint: ["/bin/sh", "-c"]
+  when: on_success
+  stage: deploy
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^v.*$/
+  script:
+    - pwd
+    - ls
+    - docker-compose version
+    - docker-compose up -d
+  tags:
+    - local-ci

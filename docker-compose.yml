@@ -1,0 +1,14 @@
+version: '3.7'
+services:
+  bilibiliSpider:
+    image: bilibili-spider:latest
+    container_name: bilibili-spider
+    hostname: spider
+    domainname: luomingxu.cn
+    networks:
+      default:
+        ipv4_address: 192.168.168.30
+networks:
+  default:
+    external:
+      name: cloud
