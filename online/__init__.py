@@ -12,7 +12,7 @@ def __main__() -> (List[int], Set[int]):
   res = selfusepy.get(url = 'https://www.bilibili.com/video/online.html', head = chromeUserAgent)
   soup: BeautifulSoup = BeautifulSoup(markup = str(res.data, encoding = 'utf-8').replace('\\n', ''),
                                       features = 'lxml')
-  cidList: List[int] = list()
+  aidList: List[int] = list()
   midSet: Set[int] = set()
 
   # 获取其中包含的json
@@ -25,7 +25,7 @@ def __main__() -> (List[int], Set[int]):
 
   session = DBSession()
   for item in obj.onlineList:
-    cidList.append(item.cid)
+    aidList.append(item.aid)
     midSet.add(item.owner.mid)
 
     avInfoDO = AVInfoDO(item)
@@ -53,4 +53,4 @@ def __main__() -> (List[int], Set[int]):
 
   session.close()
   log.info('Done')
-  return cidList, midSet
+  return aidList, midSet

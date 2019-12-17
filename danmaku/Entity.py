@@ -9,3 +9,11 @@ class AvDanmakuCid(BaseJsonObject):
     self.page: int = -1
     self.pagename: str = ''
     self.cid: int = -1
+
+
+@override_str
+class CustomTag(object):
+
+  def __init__(self, content, tag_content):
+    self.content: str = content
+    self.tag_content: str = tag_content

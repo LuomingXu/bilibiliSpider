@@ -55,7 +55,9 @@ class AVInfoDO(Base):
   last_update_time = Column(DATETIME, onupdate = datetime.now(timezone(timedelta(hours = 8))))
   create_time = Column(DATETIME, default = datetime.now(timezone(timedelta(hours = 8))))
 
-  def __init__(self, av: OnlineList.AV):
+  def __init__(self, av: OnlineList.AV = None):
+    if av is None:
+      return
     self.aid = av.aid
     self.videos = av.videos
     self.tid = av.tid

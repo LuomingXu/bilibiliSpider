@@ -1,9 +1,10 @@
-import danmaku, user, online, multi_danmaku
+import multi_danmaku
+import online
+import user
 
 if __name__ == '__main__':
-  # multi danmaku test
-  multi_danmaku.main()
-  # cid_mid = online.__main__()  # online
-  # user.__main__(cid_mid[1])  # owner
+  aid_mid = online.__main__()  # online
+  user.__main__(aid_mid[1])  # owner
+  multi_danmaku.main(aid_mid[0])  # multi danmaku
   # danmaku.__main__()  # danmaku
   print('done')
