@@ -12,6 +12,9 @@ Base = declarative_base()
 
 @override_str
 class AVInfoDO(Base):
+  """
+  av详情
+  """
   __tablename__ = 'av_info'
   __table_args__ = (
     PrimaryKeyConstraint('aid'),
@@ -97,6 +100,9 @@ class AVInfoDO(Base):
 
 @override_str
 class AVStatDO(Base):
+  """
+  av的状态详情, e.g. 投币, 点赞, 收藏
+  """
   __tablename__ = 'av_stat'
 
   aid = Column(BIGINT, primary_key = True)

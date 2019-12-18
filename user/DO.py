@@ -10,6 +10,9 @@ Base = declarative_base()
 
 @override_str
 class UserProfileDO(Base):
+  """
+  用户
+  """
   __tablename__ = 'bilibili'
 
   # table structure

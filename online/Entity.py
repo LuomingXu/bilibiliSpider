@@ -8,6 +8,9 @@ from selfusepy.utils import override_str
 
 @override_str
 class OnlineList(BaseJsonObject):
+  """
+  对应获取到的av数据的json格式的信息
+  """
 
   def __init__(self):
     self.onlineList: List[OnlineList.AV] = [OnlineList.AV()]

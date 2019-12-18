@@ -1,8 +1,10 @@
 from datetime import datetime
+
+from selfusepy.utils import override_str
 from sqlalchemy import Column, BIGINT, DATETIME, String, INTEGER, DECIMAL
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.ext.declarative import declarative_base
-from selfusepy.utils import override_str
+
 from danmaku.Entity import AvDanmakuCid
 
 Base = declarative_base()
@@ -10,6 +12,9 @@ Base = declarative_base()
 
 @override_str
 class DanmakuRealationDO(Base):
+  """
+  cid与弹幕的关系
+  """
   __tablename__ = 'cid_danmaku'
 
   cid = Column(BIGINT, primary_key = True)
@@ -22,6 +27,9 @@ class DanmakuRealationDO(Base):
 
 @override_str
 class DanmakuDO(Base):
+  """
+  弹幕
+  """
   __tablename__ = 'danmaku'
 
   id = Column(BIGINT, primary_key = True)
@@ -47,8 +55,12 @@ class DanmakuDO(Base):
     self.user_id = -1
     self.content = ''
 
+
 @override_str
 class AVCidsDO(Base):
+  """
+  av与cid的关系
+  """
   __tablename__ = 'av_cids'
 
   cid = Column(BIGINT, primary_key = True)

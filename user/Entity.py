@@ -4,6 +4,9 @@ from selfusepy.jsonparse import BaseJsonObject
 
 @override_str
 class UserProfile(BaseJsonObject):
+  """
+  对应获取到的用户信息的json
+  """
 
   # @classmethod
   # def from_dict(clazz, dict):

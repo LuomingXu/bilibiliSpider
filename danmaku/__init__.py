@@ -11,7 +11,7 @@ from sqlalchemy.engine import ResultProxy
 
 from danmaku.DO import DanmakuDO, DanmakuRealationDO, AVCidsDO
 from danmaku.Entity import AvDanmakuCid
-from db import DBSession, engine, log
+from db import DBSession, engine, log, chromeUserAgent
 from online.DO import AVInfoDO
 
 
@@ -42,9 +42,6 @@ def removeExist(cid: int, danmakuMap: MutableMapping[int, DanmakuDO],
 def __main__():
   session = DBSession()
 
-  chromeUserAgent: dict = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'}
-
   avInfos: List[AVInfoDO] = session.query(AVInfoDO).all()
   for i, avInfo in enumerate(avInfos):
     resAllCids: HTTPResponse = selfusepy.get('https://www.bilibili.com/widget/getPageList?aid=' + str(avInfo.aid))
@@ -56,7 +53,7 @@ def __main__():
         danmakuCids.append(selfusepy.parse_json(json.dumps(item), AvDanmakuCid()))
 
     for j, cidE in enumerate(danmakuCids):
-      avCid: AVCidsDO = session.query(AVCidsDO).filter_by(cid = cidE.cid).first()
+      avCid: AVCidsDO = session.query(AVCidsDO).filter(AVCidsDO.cid == cidE.cid).first()
       if avCid is None:
         log.info('av-cid relation Saving, aid: %s, cid: %s' % (avInfo.aid, cidE.cid))
         session.add(AVCidsDO(avInfo.aid, cidE))

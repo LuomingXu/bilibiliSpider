@@ -1,14 +1,15 @@
-import re, selfusepy
+import re
 from typing import List, Set
+
+import selfusepy
 from bs4 import BeautifulSoup, Tag
-from db import DBSession, log
+
+from db import DBSession, log, chromeUserAgent
 from online.DO import AVInfoDO, AVStatDO
 from online.Entity import OnlineList
 
 
 def __main__() -> (List[int], Set[int]):
-  chromeUserAgent: dict = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'}
   res = selfusepy.get(url = 'https://www.bilibili.com/video/online.html', head = chromeUserAgent)
   soup: BeautifulSoup = BeautifulSoup(markup = str(res.data, encoding = 'utf-8').replace('\\n', ''),
                                       features = 'lxml')
@@ -31,26 +32,27 @@ def __main__() -> (List[int], Set[int]):
     avInfoDO = AVInfoDO(item)
     avStatDO = AVStatDO(item)
 
-    exist: AVInfoDO = session.query(AVInfoDO).filter_by(aid = avInfoDO.aid).first()
-    if not exist:
-      try:
+    exist: AVInfoDO = session.query(AVInfoDO).filter(AVInfoDO.aid == avInfoDO.aid).first()
+
+    """
+    存在则只添加关于av的statistic
+    """
+    try:
+      if not exist:
         session.add(avInfoDO)
         session.add(avStatDO)
-        session.commit()
         log.info('[INSERT] aid: %s' % avInfoDO.aid)
-      except Exception as e:
-        session.rollback()
-        log.error('aid: %s. %s' % (avInfoDO.aid, e))
-    else:
-      try:
+      else:
         session.add(avStatDO)
-        session.commit()
-        log.info('[UPDATE] [Statistics] aid: %s' % avInfoDO.aid)
-      except Exception as e:
-        session.rollback()
-        log.exception(e)
-        log.error('aid: %s. %s' % (avInfoDO.aid, e))
+        log.info('[UPDATE] av statistics, aid: %s' % avInfoDO.aid)
+
+      session.commit()
+    except Exception as e:
+      session.rollback()
+      log.exception(e)
+    else:
+      log.info("[Update or Insert] success")
 
   session.close()
-  log.info('Done')
+  log.info('[DONE] get current top AVs')
   return aidList, midSet

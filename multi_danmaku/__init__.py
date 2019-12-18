@@ -1,7 +1,7 @@
 import asyncio
 import json
-import time
 import multiprocessing
+import time
 from datetime import timezone, timedelta, datetime
 from multiprocessing import Pool
 from typing import List, MutableMapping, Set
@@ -14,32 +14,29 @@ from sqlalchemy.engine import ResultProxy
 
 from danmaku.DO import DanmakuDO, DanmakuRealationDO, AVCidsDO
 from danmaku.Entity import AvDanmakuCid, CustomTag
-from db import DBSession, engine, log
+from db import DBSession, engine, log, chromeUserAgent
 from online.DO import AVInfoDO
 
 Last_Request_Time = 0
 i_for_queryAllCidOfAv = 0
 i_for_queryAllDanmakuOfCid = 0
-REQUEST_TIME_DELTA = 2500
+REQUEST_TIME_DELTA = 2500_000_000  # 请求间隔设为2.5s, 此处单位为ns
 NEED_FETCH_CIDs: Set[int] = set()
 NEED_SAVE_DANMAKUs: MutableMapping[int, List[Tag]] = {}
 CID_MaxLimit: MutableMapping[int, int] = {}
-chromeUserAgent: dict = {
-  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'}
 
 
 async def query_all_cid_of_av(avInfo: AVInfoDO):
   global i_for_queryAllCidOfAv, Last_Request_Time
   log.info('[START] i: %s' % i_for_queryAllCidOfAv)
 
-  delta = (Last_Request_Time + REQUEST_TIME_DELTA - int(
-    round(time.time() * 1000))) / 1000
+  delta = (Last_Request_Time + REQUEST_TIME_DELTA - time.time_ns()) / 1000_000_000
   time.sleep(delta if delta > 0 else 0)
   i_for_queryAllCidOfAv += 1
 
   log.info('[REQUEST] av\'s cids, aid: %s' % avInfo.aid)
 
-  Last_Request_Time = int(round(time.time() * 1000))
+  Last_Request_Time = time.time_ns()
   res: HTTPResponse = await selfusepy.get_async(
     'https://www.bilibili.com/widget/getPageList?aid=' + str(avInfo.aid))
   map: MutableMapping[int, AvDanmakuCid] = {}
@@ -88,12 +85,11 @@ async def query_all_danmaku_of_cid(cid: int):
   global i_for_queryAllDanmakuOfCid, Last_Request_Time
   log.info('[START] i: %s' % i_for_queryAllDanmakuOfCid)
 
-  delta = (Last_Request_Time + REQUEST_TIME_DELTA - int(
-    round(time.time() * 1000))) / 1000
+  delta = (Last_Request_Time + REQUEST_TIME_DELTA - time.time_ns()) / 1000_000_000
   time.sleep(delta if delta > 0 else 0)
   i_for_queryAllDanmakuOfCid += 1
 
-  Last_Request_Time = int(round(time.time() * 1000))
+  Last_Request_Time = time.time_ns()
   res: HTTPResponse = await selfusepy.get_async('https://api.bilibili.com/x/v1/dm/list.so?oid=' + str(cid),
                                                 head = chromeUserAgent)
 
@@ -103,7 +99,7 @@ async def query_all_danmaku_of_cid(cid: int):
 
     CID_MaxLimit[cid] = int(soup.find(name = 'maxlimit').text)
 
-    # 不在保存已经达到最大数量限制的弹幕, todo, 虽然有可能后续有新的弹幕, 老的已经被清了
+    # 不再保存已经达到最大数量限制的弹幕, todo, 虽然有可能后续有新的弹幕, 老的已经被清了
     sql: str = 'select count(danmaku_id) from cid_danmaku where cid = %s' % cid
     r: ResultProxy = await execute_sql(sql)
     count: int = int(r.fetchone()[0])
@@ -226,7 +222,7 @@ async def execute_sql(sql: str) -> ResultProxy:
 
 def main(aidList: List[int]):
   log.info('[Danmaku Task]')
-  session = DBSession()
+  # session = DBSession()
 
   # todo 改为一个sql, 在sql里面删去已经存在的不需要进行获取的av info
   # avInfos: List[AVInfoDO] = session.query(AVInfoDO).filter(AVInfoDO.aid.in_(aidList)).all()
@@ -244,7 +240,7 @@ def main(aidList: List[int]):
 
   # 获取cid对应的弹幕列表
   global Last_Request_Time
-  Last_Request_Time = 0
+  Last_Request_Time = 0  # 下一队列的协程任务开始前, 将此时间清零
   tasks = list()
   if NEED_FETCH_CIDs.__len__() > 1:
     for item in NEED_FETCH_CIDs:
@@ -254,9 +250,9 @@ def main(aidList: List[int]):
   print('Need save danmakus', NEED_SAVE_DANMAKUs.__len__())
   loop.close()
 
-  pool = Pool(processes = int(multiprocessing.cpu_count() / 2))
+  pool = Pool(processes = int(multiprocessing.cpu_count() / 2))  # 使用总核心数的一半
   for item in NEED_SAVE_DANMAKUs.items():
-    l: List[CustomTag] = list()  # 这边比较迷, bs4的Tag没有办法在多进程的时候, 没有办法进行传参, 所以对Tag进行了自定义封装
+    l: List[CustomTag] = list()  # 这边比较迷, bs4的Tag在多进程的时候, 没有办法进行传参, 所以对Tag进行了自定义封装
     for s in item[1]:
       l.append(CustomTag(s.text, s['p']))
     pool.apply_async(func = destruct_danmaku, args = (item[0], l))
