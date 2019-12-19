@@ -4,7 +4,7 @@ import selfusepy
 import time
 from selfusepy.url import HTTPResponse
 
-from db import DBSession, log
+from config import DBSession, log
 from user.DO import UserProfileDO
 from user.Entity import UserProfile
 
@@ -50,7 +50,7 @@ def __main__(mids: Set[int]):
       log.exception(e)
       log.error('mid: %s, data: %s' % (i, res.data))
     finally:
-      log.info('[SLEEP] 2.5s')
-      time.sleep(2.5)
+      log.info('[SLEEP] 2s')
+      time.sleep(2)
 
   session.close()

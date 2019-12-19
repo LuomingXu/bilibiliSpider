@@ -4,7 +4,7 @@ from typing import List
 from sqlalchemy.engine import ResultProxy
 
 from crc32.DO import crc32DO
-from db import engine, log
+from config import engine, log
 
 
 def get_value(hash: str) -> (int, str):

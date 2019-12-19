@@ -5,7 +5,7 @@ from sqlalchemy import Column, BIGINT, DATETIME, String, INTEGER, PrimaryKeyCons
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.ext.declarative import declarative_base
 
-from online.Entity import OnlineList
+from online.Entity import AV
 
 Base = declarative_base()
 
@@ -58,7 +58,7 @@ class AVInfoDO(Base):
   last_update_time = Column(DATETIME, onupdate = datetime.now(timezone(timedelta(hours = 8))))
   create_time = Column(DATETIME, default = datetime.now(timezone(timedelta(hours = 8))))
 
-  def __init__(self, av: OnlineList.AV = None):
+  def __init__(self, av: AV.OnlineList = None):
     if av is None:
       return
     self.aid = av.aid
@@ -119,9 +119,9 @@ class AVStatDO(Base):
   dislike = Column(INTEGER)
   online_count = Column(INTEGER)
 
-  def __init__(self, av: OnlineList.AV):
+  def __init__(self, av: AV.OnlineList):
     self.aid = av.stat.aid
-    self.create_time = datetime.now(timezone(timedelta(hours = 8)))
+    self.create_time = datetime.now(timezone(timedelta(hours = 8)))  #todo create_time 需要更改
     self.view = av.stat.view
     self.danmaku = av.stat.danmaku
     self.reply = av.stat.reply

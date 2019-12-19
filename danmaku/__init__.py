@@ -1,13 +1,15 @@
 import json
 import time
 from typing import List, MutableMapping
-import _file
+
 import selfusepy
 from selfusepy import HTTPResponse
 
+import _file
+import config
+from config import log, chromeUserAgent
 from danmaku.DO import DanmakuDO, DanmakuRealationDO, AVCidsDO
 from danmaku.Entity import AvDanmakuCid
-from db import log, chromeUserAgent
 
 
 def getting_data(aids: List[int]) -> MutableMapping[str, str]:
@@ -23,12 +25,12 @@ def getting_data(aids: List[int]) -> MutableMapping[str, str]:
         danmakuCids.append(selfusepy.parse_json(json.dumps(item), AvDanmakuCid()))
 
     time.sleep(2)
-    for cidE in danmakuCids:
-      log.info('[Request] cid: %s' % cidE.cid)
+    for j, cidE in enumerate(danmakuCids):
+      log.info('[Request] i: %s, cid: %s' % (j, cidE.cid))
       res: HTTPResponse = selfusepy.get('https://api.bilibili.com/x/v1/dm/list.so?oid=' + str(cidE.cid),
                                         head = chromeUserAgent)
 
-      file_name = 'danmaku/%s-%s-%s.xml' % (aid, cidE.cid, time.time_ns())
+      file_name = '%s/danmaku/%s-%s-%s.xml' % (config.date, aid, cidE.cid, time.time_ns())
       file_path = 'data-temp/%s' % file_name
       file_map[file_name] = file_path
       _file.save(str(res.data, encoding = 'utf-8').replace('\\n', ''), file_path)

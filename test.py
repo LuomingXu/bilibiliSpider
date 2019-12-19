@@ -1,6 +1,6 @@
 import os, time, random, multiprocessing
 from multiprocessing import Pool
-from db import log, engine
+from config import log, engine
 from sqlalchemy.engine import ResultProxy
 
 

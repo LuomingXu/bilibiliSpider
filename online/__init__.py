@@ -5,11 +5,11 @@ from typing import List, Set
 import selfusepy
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-
+import config
 import _file
-from db import DBSession, log, chromeUserAgent
+from config import DBSession, log, chromeUserAgent, date
 from online.DO import AVInfoDO, AVStatDO
-from online.Entity import OnlineList
+from online.Entity import AV
 
 
 def getting_data() -> ({str: str}, List[int], Set[int]):
@@ -24,19 +24,20 @@ def getting_data() -> ({str: str}, List[int], Set[int]):
   pattern = re.compile(r'{([\s\S]*)\};')
   value = pattern.findall(script.prettify())
   temp = '{' + str(value[0]).replace('\\n', '') + '}'  # remove \n
-  file_name = 'online/%s.json' % time.time_ns()
+  file_name = '%s/online/%s.json' % (config.date, time.time_ns())
   file_path = 'data-temp/%s' % file_name
   _file.save(temp, file_path)
 
   # pre processing data
   aidList: List[int] = list()
   midSet: Set[int] = set()
-  obj: OnlineList = selfusepy.parse_json(temp, OnlineList())
+  obj: AV = selfusepy.parse_json(temp, AV())
   for item in obj.onlineList:
     aidList.append(item.aid)
     midSet.add(item.owner.mid)
 
-  log.info('[DONE] Getting data')
+  log.info('[DONE] Getting data. [SLEEP] 2s')
+  time.sleep(2)
   return {file_name: file_path}, aidList, midSet
 
 
@@ -44,7 +45,7 @@ def processing_data(j: str) -> (List[int], Set[int]):
   aidList: List[int] = list()
   midSet: Set[int] = set()
 
-  obj: OnlineList = selfusepy.parse_json(j, OnlineList())
+  obj: AV = selfusepy.parse_json(j, AV())
 
   session = DBSession()
   for item in obj.onlineList:

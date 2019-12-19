@@ -7,16 +7,16 @@ from selfusepy.utils import override_str
 
 
 @override_str
-class OnlineList(BaseJsonObject):
+class AV(BaseJsonObject):
   """
   对应获取到的av数据的json格式的信息
   """
 
   def __init__(self):
-    self.onlineList: List[OnlineList.AV] = [OnlineList.AV()]
+    self.onlineList: List[AV.OnlineList] = [AV.OnlineList()]
 
   @override_str
-  class AV(BaseJsonObject):
+  class OnlineList(BaseJsonObject):
 
     def __init__(self):
       self.aid: int = -1
@@ -33,12 +33,12 @@ class OnlineList(BaseJsonObject):
       self.attribute: int = -1
       self.duration: int = -1
       self.mission_id: int = -1
-      self.rights: OnlineList.AV.Rights = OnlineList.AV.Rights()
-      self.owner: OnlineList.AV.Owner = OnlineList.AV.Owner()
-      self.stat: OnlineList.AV.Stat = OnlineList.AV.Stat()
+      self.rights: AV.OnlineList.Rights = AV.OnlineList.Rights()
+      self.owner: AV.OnlineList.Owner = AV.OnlineList.Owner()
+      self.stat: AV.OnlineList.Stat = AV.OnlineList.Stat()
       self.dynamic: str = ""
       self.cid: int = -1
-      self.dimension: OnlineList.AV.Dimension = OnlineList.AV.Dimension()
+      self.dimension: AV.OnlineList.Dimension = AV.OnlineList.Dimension()
       self.bvid: str = ""
       self.online_count: int = -1
 

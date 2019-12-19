@@ -12,9 +12,9 @@ from bs4 import Tag
 from selfusepy import HTTPResponse
 from sqlalchemy.engine import ResultProxy
 
+from config import DBSession, engine, log, chromeUserAgent
 from danmaku.DO import DanmakuDO, DanmakuRealationDO, AVCidsDO
 from danmaku.Entity import AvDanmakuCid, CustomTag
-from db import DBSession, engine, log, chromeUserAgent
 from online.DO import AVInfoDO
 
 Last_Request_Time = 0
@@ -222,10 +222,6 @@ async def execute_sql(sql: str) -> ResultProxy:
 
 def main(aidList: List[int]):
   log.info('[Danmaku Task]')
-  # session = DBSession()
-
-  # todo 改为一个sql, 在sql里面删去已经存在的不需要进行获取的av info
-  # avInfos: List[AVInfoDO] = session.query(AVInfoDO).filter(AVInfoDO.aid.in_(aidList)).all()
 
   loop = asyncio.get_event_loop()
 
