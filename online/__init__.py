@@ -1,20 +1,22 @@
 import re
+import time
 from typing import List, Set
 
 import selfusepy
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
+from bs4.element import Tag
 
+import _file
 from db import DBSession, log, chromeUserAgent
 from online.DO import AVInfoDO, AVStatDO
 from online.Entity import OnlineList
 
 
-def __main__() -> (List[int], Set[int]):
+def getting_data() -> ({str: str}, List[int], Set[int]):
+  log.info('[START] Getting top AVs at bilibili.com')
   res = selfusepy.get(url = 'https://www.bilibili.com/video/online.html', head = chromeUserAgent)
   soup: BeautifulSoup = BeautifulSoup(markup = str(res.data, encoding = 'utf-8').replace('\\n', ''),
                                       features = 'lxml')
-  aidList: List[int] = list()
-  midSet: Set[int] = set()
 
   # 获取其中包含的json
   scripts: List[Tag] = soup.find_all(name = 'script')
@@ -22,7 +24,27 @@ def __main__() -> (List[int], Set[int]):
   pattern = re.compile(r'{([\s\S]*)\};')
   value = pattern.findall(script.prettify())
   temp = '{' + str(value[0]).replace('\\n', '') + '}'  # remove \n
+  file_name = 'online/%s.json' % time.time_ns()
+  file_path = 'data-temp/%s' % file_name
+  _file.save(temp, file_path)
+
+  # pre processing data
+  aidList: List[int] = list()
+  midSet: Set[int] = set()
   obj: OnlineList = selfusepy.parse_json(temp, OnlineList())
+  for item in obj.onlineList:
+    aidList.append(item.aid)
+    midSet.add(item.owner.mid)
+
+  log.info('[DONE] Getting data')
+  return {file_name: file_path}, aidList, midSet
+
+
+def processing_data(j: str) -> (List[int], Set[int]):
+  aidList: List[int] = list()
+  midSet: Set[int] = set()
+
+  obj: OnlineList = selfusepy.parse_json(j, OnlineList())
 
   session = DBSession()
   for item in obj.onlineList:
