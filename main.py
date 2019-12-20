@@ -6,10 +6,11 @@ from datetime import datetime, timezone, timedelta
 from typing import MutableMapping
 
 import _minio
+import _user
 import config
 import danmaku
+import local_processing
 import online
-import user
 from config import log
 
 if __name__ == '__main__':
@@ -19,7 +20,7 @@ if __name__ == '__main__':
   try:
     while True:
       if time.time_ns() - last_request_time >= delta:
-        if multiprocessing.cpu_count() <= 100:
+        if multiprocessing.cpu_count() <= 10:
           """
           在性能不足的服务器上进行爬虫的工作, 保存获取的数据到oss
           """
@@ -35,7 +36,7 @@ if __name__ == '__main__':
 
           res = online.getting_data()
           waiting_upload_files.update(res[0])  # online
-          user.__main__(res[2])  # owner
+          _user.__main__(res[2])  # owner
           waiting_upload_files.update(danmaku.getting_data(res[1]))  # danmaku
 
           _minio.put(waiting_upload_files)  # save to oss
@@ -48,10 +49,9 @@ if __name__ == '__main__':
           """
           在本机上进行数据的处理, 充分利用3700x😁
           """
-          # todo 利用多核晚上数据处理
-          pass
+          local_processing.main()
       else:
-        time.sleep(5)
+        time.sleep(1)
   except Exception as e:
     """
     异常报告    

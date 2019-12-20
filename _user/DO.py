@@ -1,8 +1,8 @@
-from sqlalchemy import Column, String, BIGINT, INT, DECIMAL
+from sqlalchemy import Column, String, BIGINT, INT
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.ext.declarative import declarative_base
 
-from user.Entity import UserProfile
+from _user.Entity import UserProfile
 from selfusepy.utils import override_str
 
 Base = declarative_base()

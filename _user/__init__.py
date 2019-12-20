@@ -5,8 +5,8 @@ import time
 from selfusepy.url import HTTPResponse
 
 from config import DBSession, log
-from user.DO import UserProfileDO
-from user.Entity import UserProfile
+from _user.DO import UserProfileDO
+from _user.Entity import UserProfile
 
 
 def __main__(mids: Set[int]):

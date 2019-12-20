@@ -59,9 +59,9 @@ async def io():
 def func(cid: int):
   print(multiprocessing.current_process().name + str(cid))
 
-
+import local_processing
 if __name__ == '__main__':
-  log.info('123')
+  local_processing.main()
 # t = time.time()
 # print(int(round(time.time()*1000)))
 # time.sleep(0.1)
