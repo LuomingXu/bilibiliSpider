@@ -1,19 +1,19 @@
 import json
 import os
-from typing import Set
+from typing import Set, MutableMapping
 
 import boto3
 import selfusepy
 
-from config import s3_bucket, s3_endpoint, s3_secret_key, s3_access_key, log
 from _s3.Entity import Objects, DeleteObjects
+from config import s3_tx_bucket, s3_tx_endpoint, s3_tx_access_key, s3_tx_secret_key, log
 
-session = boto3.session.Session(aws_access_key_id = s3_access_key, aws_secret_access_key = s3_secret_key)
-client = session.client('s3', endpoint_url = s3_endpoint)
+tx_session = boto3.session.Session(aws_access_key_id = s3_tx_access_key, aws_secret_access_key = s3_tx_secret_key)
+tx_client = tx_session.client('s3', endpoint_url = s3_tx_endpoint)
 
 
 def get_all_objects_key() -> Set[str]:
-  res: dict = client.list_objects_v2(Bucket = s3_bucket, Prefix = '')
+  res: dict = tx_client.list_objects_v2(Bucket = s3_tx_bucket, Prefix = '')
   res.pop('ResponseMetadata')  # remove useless key's data
   obj: Objects = selfusepy.parse_json(json.dumps(res, default = str), Objects())
   object_keys: Set[str] = set()
@@ -23,7 +23,7 @@ def get_all_objects_key() -> Set[str]:
   return object_keys
 
 
-def download_objects(dir_to_save_files: str, keys: Set[str]) -> Set[str]:
+def download_objects(dir_to_save_files: str, keys: Set[str]):
   dirs: Set[str] = set()
   for key in keys:
     dirs.add(os.path.split(key)[0])
@@ -31,14 +31,22 @@ def download_objects(dir_to_save_files: str, keys: Set[str]) -> Set[str]:
   for _dir in dirs:
     os.makedirs(dir_to_save_files + _dir, exist_ok = True)
 
-  for key in keys:
-    client.download_file(s3_bucket, key, dir_to_save_files + key)
-    log.info('[s3 SAVED] %s' % key)
-
-  return dirs
+  for i, key in enumerate(keys):
+    tx_client.download_file(s3_tx_bucket, key, dir_to_save_files + key)
+    log.info('[s3 SAVED] i: %s, %s' % (i, key))
 
 
 def delete_objects(keys: Set[str]):
   j: str = '{"Objects": [%s], "Quiet": true}' % ','.join('{"Key": "%s"}' % item for item in keys)
-  client.delete_objects(Bucket = s3_bucket,
-                        Delete = json.loads(j))
+  tx_client.delete_objects(Bucket = s3_tx_bucket,
+                           Delete = json.loads(j))
+
+
+def put(files: MutableMapping[str, str]):
+  for file_name, file_path in files.items():
+    try:
+      tx_client.upload_file(Filename = file_path, Bucket = s3_tx_bucket, Key = file_name)
+    except Exception as e:
+      log.exception(e)
+    else:
+      log.info('[PUT] %s' % file_name)

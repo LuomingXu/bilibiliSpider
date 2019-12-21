@@ -119,9 +119,9 @@ class AVStatDO(Base):
   dislike = Column(INTEGER)
   online_count = Column(INTEGER)
 
-  def __init__(self, av: AV.OnlineList):
+  def __init__(self, av: AV.OnlineList, get_data_time: datetime = None):
     self.aid = av.stat.aid
-    self.create_time = datetime.now(timezone(timedelta(hours = 8)))  #todo create_time 需要更改
+    self.create_time = datetime.now(timezone(timedelta(hours = 8))) if get_data_time is None else get_data_time
     self.view = av.stat.view
     self.danmaku = av.stat.danmaku
     self.reply = av.stat.reply

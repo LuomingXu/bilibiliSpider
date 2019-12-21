@@ -2,6 +2,7 @@ from selfusepy.utils import override_str
 from datetime import datetime
 from enum import Enum
 
+__all__ = ['CustomFile']
 
 class FileType(Enum):
   Online = 0

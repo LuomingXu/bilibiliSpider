@@ -4,8 +4,9 @@ from datetime import datetime, timezone, timedelta
 from typing import MutableMapping, Set
 
 import _s3
-from local_processing.Entity import CustomFile, FileType
+import multi_danmaku_v2
 from config import log
+from local_processing.Entity import CustomFile, FileType
 
 
 def all_files(path: str, _map: MutableMapping[str, CustomFile] = None) -> MutableMapping[str, CustomFile]:
@@ -38,14 +39,12 @@ def all_files(path: str, _map: MutableMapping[str, CustomFile] = None) -> Mutabl
 
 def main():
   file_temp_dir = 'data-temp/'
-  keys: Set[str] = _s3.get_all_objects_key()
-  dirs: Set[str] = _s3.download_objects(file_temp_dir, keys)
+  # keys: Set[str] = _s3.get_all_objects_key()
+  # _s3.download_objects(file_temp_dir, keys)
   _map = all_files(file_temp_dir)
   log.info('Waiting to process, len: %s' % _map.__len__())
-  # todo 将map分成几组进行处理
+  multi_danmaku_v2.main(_map)  # analyze
+  # shutil.rmtree(file_temp_dir, ignore_errors = True)  # 处理完毕, 删除temp文件
+  # log.info('Delete temp files done')
 
-  for _dir in dirs:  # 处理完毕, 删除temp文件 todo 似乎会删除 file_temp_dir
-    shutil.rmtree(file_temp_dir + _dir, ignore_errors = True)
-  log.info('Delete temp files done')
-
-  _s3.delete_objects(keys)
+  # todo 暂时不需要删除 _s3.delete_objects(keys)

@@ -1,16 +1,18 @@
 import re
 import time
+from datetime import datetime
 from typing import List, Set
 
 import selfusepy
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-import config
+
 import _file
-from config import DBSession, log, chromeUserAgent, date
+import config
+from config import DBSession, log, chromeUserAgent
 from online.DO import AVInfoDO, AVStatDO
 from online.Entity import AV
-
+import traceback
 
 def getting_data() -> ({str: str}, List[int], Set[int]):
   log.info('[START] Getting top AVs at bilibili.com')
@@ -41,19 +43,13 @@ def getting_data() -> ({str: str}, List[int], Set[int]):
   return {file_name: file_path}, aidList, midSet
 
 
-def processing_data(j: str) -> (List[int], Set[int]):
-  aidList: List[int] = list()
-  midSet: Set[int] = set()
-
+def processing_data(j: str, get_data_time: datetime):
   obj: AV = selfusepy.parse_json(j, AV())
 
   session = DBSession()
   for item in obj.onlineList:
-    aidList.append(item.aid)
-    midSet.add(item.owner.mid)
-
     avInfoDO = AVInfoDO(item)
-    avStatDO = AVStatDO(item)
+    avStatDO = AVStatDO(item, get_data_time)
 
     exist: AVInfoDO = session.query(AVInfoDO).filter(AVInfoDO.aid == avInfoDO.aid).first()
 
@@ -72,10 +68,9 @@ def processing_data(j: str) -> (List[int], Set[int]):
       session.commit()
     except Exception as e:
       session.rollback()
-      log.exception(e)
+      traceback.print_exc()
     else:
       log.info("[Update or Insert] success")
 
   session.close()
   log.info('[DONE] get current top AVs')
-  return aidList, midSet

@@ -5,7 +5,7 @@ import time
 from datetime import datetime, timezone, timedelta
 from typing import MutableMapping
 
-import _minio
+import _s3
 import _user
 import config
 import danmaku
@@ -39,7 +39,7 @@ if __name__ == '__main__':
           _user.__main__(res[2])  # owner
           waiting_upload_files.update(danmaku.getting_data(res[1]))  # danmaku
 
-          _minio.put(waiting_upload_files)  # save to oss
+          _s3.put(waiting_upload_files)  # save to oss
 
           for dir in dirs:
             shutil.rmtree(dir, ignore_errors = True)  # 不管存在与否, 空与否都能删了
@@ -50,6 +50,7 @@ if __name__ == '__main__':
           在本机上进行数据的处理, 充分利用3700x😁
           """
           local_processing.main()
+          exit(0)
       else:
         time.sleep(1)
   except Exception as e:
