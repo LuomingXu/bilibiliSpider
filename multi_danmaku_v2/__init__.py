@@ -1,3 +1,4 @@
+import asyncio
 import math
 import multiprocessing
 import traceback
@@ -8,7 +9,7 @@ from multiprocessing.pool import ApplyResult
 from typing import List, MutableMapping, Set
 
 from bs4 import BeautifulSoup
-from sqlalchemy.engine import ResultProxy
+from sqlalchemy.engine.result import ResultProxy
 
 import online
 from config import DBSession, engine, log
@@ -22,8 +23,8 @@ def analyze_danmaku(_map: MutableMapping[str, CustomFile]) -> (List[CustomTag], 
   cid_aid: MutableMapping[int, int] = {}
   for file_name, file in _map.items():
     if file.file_type is FileType.Online:
-        online.processing_data(file.content,
-                               datetime.fromtimestamp(int(file_name) / 1_000_000_000, timezone(timedelta(hours = 8))))
+      online.processing_data(file.content,
+                             datetime.fromtimestamp(int(file_name) / 1_000_000_000, timezone(timedelta(hours = 8))))
     else:
       soup: BeautifulSoup = BeautifulSoup(markup = file.content, features = 'lxml')
       l: List = file_name.split('-')
@@ -36,6 +37,9 @@ def analyze_danmaku(_map: MutableMapping[str, CustomFile]) -> (List[CustomTag], 
 
 
 def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
+  """
+  保存av与cid的关系
+  """
   objs: List[AVCidsDO] = []
   conn = engine.connect()
   session = DBSession()
@@ -44,6 +48,9 @@ def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
 
   cids: ResultProxy = conn.execute(sql)
   for item in cids.fetchall():
+    """
+    剔除已经存在的关系
+    """
     cid_aid.pop(item[0])
   conn.close()
 
@@ -53,7 +60,13 @@ def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
     obj.aid = aid
     objs.append(obj)
 
-  session.bulk_save_objects(objs)
+  if objs.__len__() > 0:
+    try:
+      session.bulk_save_objects(objs)
+    except Exception:
+      traceback.print_exc()
+    finally:
+      session.close()
 
 
 def save_danmaku_to_db(danmakuList: List[CustomTag]):
@@ -81,9 +94,17 @@ def save_danmaku_to_db(danmakuList: List[CustomTag]):
     danmakuMap[obj.id] = obj
     relationMap[relation.danmaku_id] = relation
 
+  print('[Done] danmakus split')
+  danmakuList.clear()
   session = DBSession()
   try:
-    removeExist(danmakuMap, relationMap)
+
+    loop = asyncio.get_event_loop()
+    if loop.is_closed():
+      asyncio.set_event_loop(asyncio.new_event_loop())
+      loop = asyncio.get_event_loop()
+    loop.run_until_complete(removeExist(danmakuMap, relationMap))
+    loop.close()
 
     if danmakuMap.__len__() == relationMap.__len__() and relationMap.__len__() == 0:
       return
@@ -98,34 +119,60 @@ def save_danmaku_to_db(danmakuList: List[CustomTag]):
     print('Saved success')
   finally:
     session.close()
-    print('[SAVED] danmakuMap.len: %s' % danmakuList.__len__())
+    print('[SAVED] danmakuMap.len: %s' % danmakuMap.__len__())
     print('[SAVED] relationMap.len: %s' % relationMap.__len__())
     danmakuList.clear()
     relationMap.clear()
 
 
-def removeExist(danmakuMap: MutableMapping[int, DanmakuDO],
-                relationMap: MutableMapping[int, DanmakuRealationDO]):
-  if danmakuMap.__len__() != relationMap.__len__():
-    raise BaseException('length is not match')
+async def removeExist(danmakuMap: MutableMapping[int, DanmakuDO],
+                      relationMap: MutableMapping[int, DanmakuRealationDO]):
+  """
+  剔除已经存在的danmaku
+  """
+  ids: List[int] = list()
+  for _id in danmakuMap.keys():
+    ids.append(_id)
 
+  size = 1_000
+  ids_spliced = [ids[i:i + size] for i in range(0, len(ids), size)]
+  for item in ids_spliced:
+    sql: str = 'select danmaku_id from cid_danmaku where danmaku_id in (\'\', %s)' % (
+      ','.join('%s' % _id for _id in item))
+
+    exist_ids: ResultProxy = await execute_sql(sql)
+    resData = exist_ids.fetchall()
+    print('exist danmaku ids len: %s' % resData.__len__())
+    for column in resData:
+      danmakuMap.pop(column[0])
+
+  ids.clear()
+  ids_spliced.clear()
+  for _id in relationMap.keys():
+    ids.append(_id)
+
+  ids_spliced = [ids[i:i + size] for i in range(0, len(ids), size)]
+  for item in ids_spliced:
+    sql: str = 'select id from danmaku where id in (\'\', %s)' % (
+      ', '.join('%s' % _id for _id in item))
+
+    exist_ids: ResultProxy = await execute_sql(sql)
+    resData = exist_ids.fetchall()
+    print('exist relation ids len: %s' % resData.__len__())
+    for column in resData:
+      relationMap.pop(column[0])
+
+  print('Removed exist ids, danmaku map len: %s, relation map len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
+
+
+async def execute_sql(sql: str) -> ResultProxy:
   conn = engine.connect()
-
-  sql: str = 'select danmaku_id from cid_danmaku where danmaku_id in (\'\', %s)' % (
-    ', '.join('%s' % item for item in relationMap.keys()))
-
-  ids: ResultProxy = conn.execute(sql)
-  for item in ids.fetchall():
-    relationMap.pop(item[0])
-
-  sql = 'select id from danmaku where id in (\'\', %s)' % (
-    ', '.join('%s' % str(item) for item in danmakuMap.keys()))
-
-  ids = conn.execute(sql)
-  for item in ids.fetchall():
-    danmakuMap.pop(item[0])
-
-  conn.close()
+  try:
+    return conn.execute(sql)
+  except Exception as e:
+    log.exception(e)
+  finally:
+    conn.close()
 
 
 def main(_map: MutableMapping[str, CustomFile]):
@@ -150,14 +197,24 @@ def main(_map: MutableMapping[str, CustomFile]):
   pool.join()
   log.info('[Done] analyze')
 
+  tasks: list = list()
   try:
+    loop = asyncio.get_event_loop()
+    if loop.is_closed():
+      asyncio.set_event_loop(asyncio.new_event_loop())
+      loop = asyncio.get_event_loop()
+
     pool = Pool(processes = cpu_use_number)
     for item in res:
       value = item.get()
       pool.apply_async(func = save_danmaku_to_db, args = (value[0],))
-      save_cid_aid_relation(value[1])
+      tasks.append(save_cid_aid_relation(value[1]))
+    loop.run_until_complete(asyncio.wait(tasks))
+    loop.close()
+    log.info('[Done] av-cid relation')
+
     pool.close()
     pool.join()
-    log.info('[Done] DB')
+    log.info('[Done] danmaku')
   except Exception as e:
     log.exception(e)

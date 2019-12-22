@@ -20,7 +20,7 @@ if __name__ == '__main__':
   try:
     while True:
       if time.time_ns() - last_request_time >= delta:
-        if multiprocessing.cpu_count() <= 10:
+        if multiprocessing.cpu_count() < 16:
           """
           在性能不足的服务器上进行爬虫的工作, 保存获取的数据到oss
           """
