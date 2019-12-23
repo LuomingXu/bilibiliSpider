@@ -67,9 +67,11 @@ class AVCidsDO(Base):
   page = Column(INTEGER)
   pagename = Column(String(500))
   aid = Column(BIGINT)
+  danmaku_count = Column(INTEGER)
 
   def __init__(self, aid: int = None, obj: AvDanmakuCid = None):
     self.cid = obj.cid if obj is not None else None
     self.page = obj.page if obj is not None else None
     self.pagename = obj.pagename if obj is not None else None
     self.aid = aid
+    self.danmaku_count = 0

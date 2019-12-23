@@ -1,7 +1,7 @@
 import asyncio
+import gc
 import math
 import multiprocessing
-import traceback
 from datetime import datetime
 from datetime import timezone, timedelta
 from multiprocessing import Pool
@@ -16,6 +16,31 @@ from config import DBSession, engine, log
 from danmaku.DO import DanmakuDO, DanmakuRealationDO, AVCidsDO
 from danmaku.Entity import CustomTag
 from local_processing.Entity import CustomFile, FileType
+
+
+def remove_data(_map: MutableMapping[str, CustomFile]):
+  """
+  剔除已经存了大于3000条弹幕的cid
+  """
+  conn = engine.connect()
+  cid_key: MutableMapping[int, str] = {}
+
+  for file_name, file in _map.items():
+    if file.file_type is FileType.Danmaku:
+      l: List = file_name.split('-')
+      cid_key[int(l[1])] = file_name
+
+  sql: str = 'select danmaku_count, cid from av_cids where cid in (\'\',%s)' % ','.join(
+    '%s' % item for item in cid_key.keys())
+  res: ResultProxy = conn.execute(sql)
+  conn.close()
+  cid_count: MutableMapping[int, int] = {}
+  for item in res.fetchall():
+    cid_count[int(item[1])] = int(item[0])
+
+  for cid, count in cid_count.items():
+    if count >= 3000:
+      _map.pop(cid_key[cid])
 
 
 def analyze_danmaku(_map: MutableMapping[str, CustomFile]) -> (List[CustomTag], MutableMapping[int, int]):
@@ -36,37 +61,38 @@ def analyze_danmaku(_map: MutableMapping[str, CustomFile]) -> (List[CustomTag], 
   return danmakuList, cid_aid
 
 
-def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
+async def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
   """
   保存av与cid的关系
   """
   objs: List[AVCidsDO] = []
-  conn = engine.connect()
   session = DBSession()
 
-  sql: str = 'select cid from av_cids where cid in (%s)' % ','.join('%s' % item for item in cid_aid.keys())
+  sql: str = 'select cid from av_cids where cid in (\'\', %s)' % ','.join('%s' % item for item in cid_aid.keys())
 
-  cids: ResultProxy = conn.execute(sql)
+  cids: ResultProxy = await execute_sql(sql)
   for item in cids.fetchall():
     """
     剔除已经存在的关系
     """
     cid_aid.pop(item[0])
-  conn.close()
 
-  for cid, aid in cid_aid.items():
-    obj: AVCidsDO = AVCidsDO()
-    obj.cid = cid
-    obj.aid = aid
-    objs.append(obj)
+  if cid_aid.__len__() > 0:
+    for cid, aid in cid_aid.items():
+      obj: AVCidsDO = AVCidsDO()
+      obj.cid = cid
+      obj.aid = aid
+      objs.append(obj)
 
-  if objs.__len__() > 0:
-    try:
-      session.bulk_save_objects(objs)
-    except Exception:
-      traceback.print_exc()
-    finally:
-      session.close()
+      try:
+        session.bulk_save_objects(objs)
+      except Exception as e:
+        session.rollback()
+        raise e
+      else:
+        log.info('[Saved] av-cid relation')
+      finally:
+        session.close()
 
 
 def save_danmaku_to_db(danmakuList: List[CustomTag]):
@@ -92,10 +118,12 @@ def save_danmaku_to_db(danmakuList: List[CustomTag]):
     relation.danmaku_id = obj.id
 
     danmakuMap[obj.id] = obj
-    relationMap[relation.danmaku_id] = relation
+    relationMap[obj.id] = relation
 
   print('[Done] danmakus split')
-  danmakuList.clear()
+  del danmakuList
+  gc.collect()
+
   session = DBSession()
   try:
 
@@ -109,20 +137,34 @@ def save_danmaku_to_db(danmakuList: List[CustomTag]):
     if danmakuMap.__len__() == relationMap.__len__() and relationMap.__len__() == 0:
       return
 
+    cid_count: MutableMapping[int, int] = {}
+    for relation in relationMap.values():
+      cid = relation.cid
+      if cid_count.get(cid) is None:
+        cid_count[cid] = 1
+      else:
+        cid_count[cid] += 1
+
+    sql: str = ''.join(
+      'update av_cids set danmaku_count = %s where cid = %s;' % item for item in cid_count)
+    print('update sql: %s' % sql)
+    session.execute(sql)
+
     session.bulk_save_objects(danmakuMap.values() if danmakuMap.values().__len__() > 0 else None)
     session.bulk_save_objects(relationMap.values() if relationMap.values().__len__() > 0 else None)
     session.commit()
   except Exception as e:
     session.rollback()
-    print(e)
+    raise e
   else:
     print('Saved success')
   finally:
     session.close()
     print('[SAVED] danmakuMap.len: %s' % danmakuMap.__len__())
     print('[SAVED] relationMap.len: %s' % relationMap.__len__())
-    danmakuList.clear()
-    relationMap.clear()
+    del danmakuMap
+    del relationMap
+    gc.collect()
 
 
 async def removeExist(danmakuMap: MutableMapping[int, DanmakuDO],
@@ -135,21 +177,6 @@ async def removeExist(danmakuMap: MutableMapping[int, DanmakuDO],
     ids.append(_id)
 
   size = 1_000
-  ids_spliced = [ids[i:i + size] for i in range(0, len(ids), size)]
-  for item in ids_spliced:
-    sql: str = 'select danmaku_id from cid_danmaku where danmaku_id in (\'\', %s)' % (
-      ','.join('%s' % _id for _id in item))
-
-    exist_ids: ResultProxy = await execute_sql(sql)
-    resData = exist_ids.fetchall()
-    print('exist danmaku ids len: %s' % resData.__len__())
-    for column in resData:
-      danmakuMap.pop(column[0])
-
-  ids.clear()
-  ids_spliced.clear()
-  for _id in relationMap.keys():
-    ids.append(_id)
 
   ids_spliced = [ids[i:i + size] for i in range(0, len(ids), size)]
   for item in ids_spliced:
@@ -158,8 +185,9 @@ async def removeExist(danmakuMap: MutableMapping[int, DanmakuDO],
 
     exist_ids: ResultProxy = await execute_sql(sql)
     resData = exist_ids.fetchall()
-    print('exist relation ids len: %s' % resData.__len__())
+    print('exist danmaku ids len: %s' % resData.__len__())
     for column in resData:
+      danmakuMap.pop(column[0])
       relationMap.pop(column[0])
 
   print('Removed exist ids, danmaku map len: %s, relation map len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
@@ -170,7 +198,7 @@ async def execute_sql(sql: str) -> ResultProxy:
   try:
     return conn.execute(sql)
   except Exception as e:
-    log.exception(e)
+    raise e
   finally:
     conn.close()
 
@@ -179,6 +207,9 @@ def main(_map: MutableMapping[str, CustomFile]):
   """
   将map分成几组进行多进程处理
   """
+  log.info('removing data')  # 剔除弹幕过多的cid
+  remove_data(_map)
+  log.info('Current map len: %s' % _map.__len__())
 
   log.info('multiprocess tasks')
   cpu_use_number = int(multiprocessing.cpu_count() / 3 * 2)  # 使用总核心数的2/3
@@ -196,25 +227,30 @@ def main(_map: MutableMapping[str, CustomFile]):
   pool.close()
   pool.join()
   log.info('[Done] analyze')
+  del _map
+  gc.collect()
 
-  tasks: list = list()
   try:
     loop = asyncio.get_event_loop()
     if loop.is_closed():
       asyncio.set_event_loop(asyncio.new_event_loop())
       loop = asyncio.get_event_loop()
 
-    pool = Pool(processes = cpu_use_number)
+    tasks: list = list()
     for item in res:
       value = item.get()
-      pool.apply_async(func = save_danmaku_to_db, args = (value[0],))
       tasks.append(save_cid_aid_relation(value[1]))
     loop.run_until_complete(asyncio.wait(tasks))
     loop.close()
     log.info('[Done] av-cid relation')
 
+    pool = Pool(processes = cpu_use_number)
+    for item in res:
+      value = item.get()
+      pool.apply_async(func = save_danmaku_to_db, args = (value[0],))
     pool.close()
     pool.join()
     log.info('[Done] danmaku')
+    log.info('[DONE] analyze spiders\' data')
   except Exception as e:
-    log.exception(e)
+    raise e

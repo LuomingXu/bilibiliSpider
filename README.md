@@ -1,3 +1,13 @@
 bilibili spider
 =
-    作为毕设的爬虫repo
+    graduation project repo
+
+#### Require
+
+purpose|dependency
+---|------
+db|sqlalchemy, pymysql
+http|urllib3
+s3|boto3, minio(archive)
+xml|bs4, lxml
+util|selfusepy, psutil

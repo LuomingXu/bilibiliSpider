@@ -12,7 +12,7 @@ import config
 from config import DBSession, log, chromeUserAgent
 from online.DO import AVInfoDO, AVStatDO
 from online.Entity import AV
-import traceback
+
 
 def getting_data() -> ({str: str}, List[int], Set[int]):
   log.info('[START] Getting top AVs at bilibili.com')
@@ -45,7 +45,7 @@ def getting_data() -> ({str: str}, List[int], Set[int]):
 
 def processing_data(j: str, get_data_time: datetime):
   obj: AV = selfusepy.parse_json(j, AV())
-
+  log.info("[Saving] top avs data: %s" % get_data_time.isoformat())
   session = DBSession()
   for item in obj.onlineList:
     avInfoDO = AVInfoDO(item)
@@ -68,9 +68,9 @@ def processing_data(j: str, get_data_time: datetime):
       session.commit()
     except Exception as e:
       session.rollback()
-      traceback.print_exc()
+      raise e
     else:
       log.info("[Update or Insert] success")
 
   session.close()
-  log.info('[DONE] get current top AVs')
+  log.info('[DONE] save top AVs')

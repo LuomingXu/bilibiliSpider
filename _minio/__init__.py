@@ -1,3 +1,6 @@
+"""
+Archive
+```python
 import os
 from typing import MutableMapping, Set
 
@@ -68,3 +71,5 @@ def download(files: MutableMapping[str, Set[str]]):
         log.exception(e)
       else:
         log.info(file_name)
+```
+"""
