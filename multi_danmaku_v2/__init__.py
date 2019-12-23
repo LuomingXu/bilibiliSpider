@@ -6,7 +6,7 @@ from datetime import datetime
 from datetime import timezone, timedelta
 from multiprocessing import Pool
 from multiprocessing.pool import ApplyResult
-from typing import List, MutableMapping, Set
+from typing import List, MutableMapping, Set, AbstractSet
 
 from bs4 import BeautifulSoup
 from sqlalchemy.engine.result import ResultProxy
@@ -56,8 +56,11 @@ def analyze_danmaku(_map: MutableMapping[str, CustomFile]) -> (List[CustomTag], 
       aid: int = int(l[0])
       cid: int = int(l[1])
       cid_aid[cid] = aid
+      print('file name: %s, aid: %s, cid: %s, len: %s' % (file_name, aid, cid, cid_aid.__len__()))
       for item in soup.find_all(name = 'd'):
         danmakuList.append(CustomTag(content = item.text, tag_content = item['p'], aid = aid, cid = cid))
+
+  print('len: %s' % cid_aid.__len__())
   return danmakuList, cid_aid
 
 
@@ -95,9 +98,11 @@ async def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
         session.close()
 
 
-def save_danmaku_to_db(danmakuList: List[CustomTag]):
+def save_danmaku_to_db(danmakuList: List[CustomTag], cid_aid: MutableMapping[int, int]):
+  cids: AbstractSet[int] = cid_aid.keys()
   danmakuMap: MutableMapping[int, DanmakuDO] = {}
   relationMap: MutableMapping[int, DanmakuRealationDO] = {}
+  cid_danmakuIdSet: MutableMapping[int, Set[int]] = {}
   print('[FORMER] danmakus: %s' % (danmakuList.__len__()))
   for danmaku in danmakuList:
     # 弹幕出现时间,模式,字体大小,颜色,发送时间戳,弹幕池,用户Hash,数据库ID
@@ -120,41 +125,37 @@ def save_danmaku_to_db(danmakuList: List[CustomTag]):
     danmakuMap[obj.id] = obj
     relationMap[obj.id] = relation
 
+    if cid_danmakuIdSet.get(danmaku.cid) is None:
+      cid_danmakuIdSet[danmaku.cid] = set()
+      cid_danmakuIdSet[danmaku.cid].add(obj.id)
+    else:
+      cid_danmakuIdSet[danmaku.cid].add(obj.id)
+
   print('[Done] danmakus split')
   del danmakuList
   gc.collect()
 
   session = DBSession()
   try:
-
-    loop = asyncio.get_event_loop()
-    if loop.is_closed():
-      asyncio.set_event_loop(asyncio.new_event_loop())
-      loop = asyncio.get_event_loop()
-    loop.run_until_complete(removeExist(danmakuMap, relationMap))
-    loop.close()
+    removeExist(danmakuMap, relationMap, cids)
 
     if danmakuMap.__len__() == relationMap.__len__() and relationMap.__len__() == 0:
       return
 
-    cid_count: MutableMapping[int, int] = {}
-    for relation in relationMap.values():
-      cid = relation.cid
-      if cid_count.get(cid) is None:
-        cid_count[cid] = 1
-      else:
-        cid_count[cid] += 1
+    from redis import Redis
+    red = Redis()
+    for cid, value in cid_danmakuIdSet.items():
+      red.sadd(cid, *value)
 
-    sql: str = ''.join(
-      'update av_cids set danmaku_count = %s where cid = %s;' % item for item in cid_count)
-    print('update sql: %s' % sql)
-    session.execute(sql)
+    print(
+      'Removed exist ids, danmaku map len: %s, relation map len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
 
     session.bulk_save_objects(danmakuMap.values() if danmakuMap.values().__len__() > 0 else None)
     session.bulk_save_objects(relationMap.values() if relationMap.values().__len__() > 0 else None)
     session.commit()
   except Exception as e:
     session.rollback()
+    print(e)
     raise e
   else:
     print('Saved success')
@@ -167,30 +168,21 @@ def save_danmaku_to_db(danmakuList: List[CustomTag]):
     gc.collect()
 
 
-async def removeExist(danmakuMap: MutableMapping[int, DanmakuDO],
-                      relationMap: MutableMapping[int, DanmakuRealationDO]):
+def removeExist(danmakuMap: MutableMapping[int, DanmakuDO],
+                relationMap: MutableMapping[int, DanmakuRealationDO], cids: AbstractSet[int]):
   """
   剔除已经存在的danmaku
   """
-  ids: List[int] = list()
-  for _id in danmakuMap.keys():
-    ids.append(_id)
+  cids_all_danmakuId: Set[int] = set()
+  import redis
+  red = redis.client.Redis()
+  for cid in cids:
+    for item in red.smembers(cid):
+      cids_all_danmakuId.add(int(item))
 
-  size = 1_000
-
-  ids_spliced = [ids[i:i + size] for i in range(0, len(ids), size)]
-  for item in ids_spliced:
-    sql: str = 'select id from danmaku where id in (\'\', %s)' % (
-      ', '.join('%s' % _id for _id in item))
-
-    exist_ids: ResultProxy = await execute_sql(sql)
-    resData = exist_ids.fetchall()
-    print('exist danmaku ids len: %s' % resData.__len__())
-    for column in resData:
-      danmakuMap.pop(column[0])
-      relationMap.pop(column[0])
-
-  print('Removed exist ids, danmaku map len: %s, relation map len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
+  for _id in cids_all_danmakuId:
+    danmakuMap.pop(_id)
+    relationMap.pop(_id)
 
 
 async def execute_sql(sql: str) -> ResultProxy:
@@ -207,23 +199,19 @@ def main(_map: MutableMapping[str, CustomFile]):
   """
   将map分成几组进行多进程处理
   """
-  log.info('removing data')  # 剔除弹幕过多的cid
-  remove_data(_map)
-  log.info('Current map len: %s' % _map.__len__())
-
   log.info('multiprocess tasks')
   cpu_use_number = int(multiprocessing.cpu_count() / 3 * 2)  # 使用总核心数的2/3
   pool = Pool(processes = cpu_use_number)
   size = int(math.ceil(_map.__len__() / float(cpu_use_number)))
   map_temp: MutableMapping[str, CustomFile] = {}
 
-  res: Set[ApplyResult] = set()
+  res: List[ApplyResult] = list()
   for i, item in enumerate(_map.items()):
     map_temp[item[0]] = item[1]
     if map_temp.__len__() % size == 0:
-      res.add(pool.apply_async(func = analyze_danmaku, args = (map_temp,)))
+      res.append(pool.apply_async(func = analyze_danmaku, args = (map_temp,)))
       map_temp = {}
-  res.add(pool.apply_async(func = analyze_danmaku, args = (map_temp,)))
+  res.append(pool.apply_async(func = analyze_danmaku, args = (map_temp,)))
   pool.close()
   pool.join()
   log.info('[Done] analyze')
@@ -247,7 +235,8 @@ def main(_map: MutableMapping[str, CustomFile]):
     pool = Pool(processes = cpu_use_number)
     for item in res:
       value = item.get()
-      pool.apply_async(func = save_danmaku_to_db, args = (value[0],))
+      save_danmaku_to_db(value[0], value[1])
+      # pool.apply_async(func = save_danmaku_to_db, args = (value[0], value[1],))
     pool.close()
     pool.join()
     log.info('[Done] danmaku')
