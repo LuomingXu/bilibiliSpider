@@ -41,6 +41,7 @@ create table av_info
 );
 create table av_stat
 (
+    id bigint not null primary key auto_increment,
     aid          bigint   not null,
     create_time  datetime not null comment '记录这条数据的时间',
     view         int,

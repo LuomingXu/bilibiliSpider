@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 from sqlalchemy.engine.result import ResultProxy
 
 import online
-from config import DBSession, engine, log
+from config import DBSession, engine, log, red
 from danmaku.DO import DanmakuDO, DanmakuRealationDO, AVCidsDO
 from danmaku.Entity import CustomTag
 from local_processing.Entity import CustomFile, FileType
@@ -162,8 +162,6 @@ def save_danmaku_to_db(danmakuList: List[CustomTag], cid_aid: MutableMapping[int
     raise e
   else:
     print('Save to DB success')
-    from redis import Redis
-    red = Redis()
     for cid, value in cid_danmakuIdSet.items():
       red.sadd(cid, *value)
       print('[Saved] redis. cid: %s, len: %s' % (cid, value.__len__()))
@@ -183,8 +181,6 @@ def removeExist(danmakuMap: MutableMapping[int, DanmakuDO],
   """
   print('from redis get cids: %s' % cids.__len__())
   cids_all_danmakuId: Set[int] = set()
-  from redis import Redis
-  red = Redis()
   for cid in cids:
     for item in red.smembers(cid):
       cids_all_danmakuId.add(int(item))

@@ -7,9 +7,24 @@ from selfusepy import HTTPResponse
 
 import _file
 import config
-from config import log, chromeUserAgent
+from config import log, chromeUserAgent, red
 from danmaku.DO import DanmakuDO, DanmakuRealationDO, AVCidsDO
 from danmaku.Entity import AvDanmakuCid
+
+
+def do_not_get_cid(aid: int) -> bool:
+  key = str(aid.__str__() + '-req-times')
+  res = red.get(key)
+  if res is None:
+    red.set(key, 1)
+    return False
+  else:
+    log.info('aid: %s, req times: %s' % (aid, res))
+    if res >= 3:
+      return True
+    else:
+      red.incr(key, 1)
+      return False
 
 
 def getting_data(aids: List[int]) -> MutableMapping[str, str]:
@@ -23,6 +38,10 @@ def getting_data(aids: List[int]) -> MutableMapping[str, str]:
     if isinstance(json.loads(resAllCids.data), list):
       for item in l:
         danmakuCids.append(selfusepy.parse_json(json.dumps(item), AvDanmakuCid()))
+
+    if danmakuCids.__len__() > 32 and do_not_get_cid(aid):  # 如果有大量的cid, 就只获取三次
+      log.info('[Continue] do not get cids. aid: %s' % aid)
+      continue
 
     time.sleep(2)
     for j, cidE in enumerate(danmakuCids):
