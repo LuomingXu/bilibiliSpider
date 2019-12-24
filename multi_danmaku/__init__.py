@@ -74,7 +74,7 @@ async def filter_cid_which_isexist(aid: int, danmakuCidsMap: MutableMapping[int,
   sql: str = 'select cid from av_cids where cid in (%s) and fetch_times >= 4' % cids
   res: ResultProxy = await execute_sql(sql)
   for item in res.fetchall():
-    danmakuCidsMap.pop(item[0])
+    danmakuCidsMap.pop(item[0], None)
   log.info('[DATA] aid: %s, cid fetch_times <4 len: %s' % (aid, danmakuCidsMap.__len__()))
   sql: str = 'update av_cids set fetch_times = fetch_times + 1 where cid in (%s)' % cids
   res = await execute_sql(sql)
@@ -198,14 +198,14 @@ def removeExist(cid: int, danmakuMap: MutableMapping[int, DanmakuDO],
 
   ids: ResultProxy = conn.execute(sql)
   for item in ids.fetchall():
-    relationMap.pop(item[0])
+    relationMap.pop(item[0], None)
 
   sql = 'select id from danmaku where id in (%s)' % (
     ', '.join('%s' % str(item) for item in danmakuMap.keys()))
 
   ids = conn.execute(sql)
   for item in ids.fetchall():
-    danmakuMap.pop(item[0])
+    danmakuMap.pop(item[0], None)
 
   conn.close()
 

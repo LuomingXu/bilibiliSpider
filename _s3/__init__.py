@@ -14,7 +14,7 @@ tx_client = tx_session.client('s3', endpoint_url = s3_tx_endpoint)
 
 def get_all_objects_key() -> Set[str]:
   res: dict = tx_client.list_objects_v2(Bucket = s3_tx_bucket, Prefix = '')
-  res.pop('ResponseMetadata')  # remove useless key's data
+  res.pop('ResponseMetadata', None)  # remove useless key's data
   obj: Objects = selfusepy.parse_json(json.dumps(res, default = str), Objects())
   object_keys: Set[str] = set()
   for item in obj.Contents:

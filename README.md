@@ -12,4 +12,7 @@ s3|boto3, minio(archive)
 xml|bs4, lxml
 util|selfusepy, psutil
 
-ids_spliced = [ids[i:i + size] for i in range(0, len(ids), size)]
+    ids_spliced = [ids[i:i + size] for i in range(0, len(ids), size)]
+    注意引用传递
+    _map(key, None)
+    Pool要用Manage().Queue()

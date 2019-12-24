@@ -40,7 +40,7 @@ def remove_data(_map: MutableMapping[str, CustomFile]):
 
   for cid, count in cid_count.items():
     if count >= 3000:
-      _map.pop(cid_key[cid])
+      _map.pop(cid_key[cid], None)
 
 
 def analyze_danmaku(_map: MutableMapping[str, CustomFile]) -> (List[CustomTag], MutableMapping[int, int]):
@@ -56,11 +56,10 @@ def analyze_danmaku(_map: MutableMapping[str, CustomFile]) -> (List[CustomTag], 
       aid: int = int(l[0])
       cid: int = int(l[1])
       cid_aid[cid] = aid
-      print('file name: %s, aid: %s, cid: %s, len: %s' % (file_name, aid, cid, cid_aid.__len__()))
       for item in soup.find_all(name = 'd'):
         danmakuList.append(CustomTag(content = item.text, tag_content = item['p'], aid = aid, cid = cid))
 
-  print('len: %s' % cid_aid.__len__())
+  print('danmakuList len: %s, cid_aid len: %s' % (danmakuList.__len__(), cid_aid.__len__()))
   return danmakuList, cid_aid
 
 
@@ -74,36 +73,45 @@ async def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
   sql: str = 'select cid from av_cids where cid in (\'\', %s)' % ','.join('%s' % item for item in cid_aid.keys())
 
   cids: ResultProxy = await execute_sql(sql)
+  exist_cids: Set[int] = set()
   for item in cids.fetchall():
     """
-    剔除已经存在的关系
+    保存已经存在的关系
     """
-    cid_aid.pop(item[0])
+    exist_cids.add(int(item[0]))
 
-  if cid_aid.__len__() > 0:
+  print('av-cid', exist_cids)
+  if not exist_cids.__len__() == cid_aid.__len__():
     for cid, aid in cid_aid.items():
+      if exist_cids.__contains__(cid):
+        continue
       obj: AVCidsDO = AVCidsDO()
       obj.cid = cid
       obj.aid = aid
       objs.append(obj)
+      print('obj', obj)
 
-      try:
-        session.bulk_save_objects(objs)
-      except Exception as e:
-        session.rollback()
-        raise e
-      else:
-        log.info('[Saved] av-cid relation')
-      finally:
-        session.close()
+    try:
+      session.bulk_save_objects(objs)
+      session.commit()
+    except Exception as e:
+      session.rollback()
+      raise e
+    else:
+      log.info('[Saved] av-cid relation. len: %s' % objs.__len__())
+      print(objs.__str__())
+    finally:
+      session.close()
+  else:
+    log.info('All av-cid relation exist')
 
 
 def save_danmaku_to_db(danmakuList: List[CustomTag], cid_aid: MutableMapping[int, int]):
+  print('[FORMER] danmakuList len: %s, cid_aid len: %s' % (danmakuList.__len__(), cid_aid.__len__()))
   cids: AbstractSet[int] = cid_aid.keys()
   danmakuMap: MutableMapping[int, DanmakuDO] = {}
   relationMap: MutableMapping[int, DanmakuRealationDO] = {}
   cid_danmakuIdSet: MutableMapping[int, Set[int]] = {}
-  print('[FORMER] danmakus: %s' % (danmakuList.__len__()))
   for danmaku in danmakuList:
     # 弹幕出现时间,模式,字体大小,颜色,发送时间戳,弹幕池,用户Hash,数据库ID
     obj: DanmakuDO = DanmakuDO()
@@ -142,11 +150,6 @@ def save_danmaku_to_db(danmakuList: List[CustomTag], cid_aid: MutableMapping[int
     if danmakuMap.__len__() == relationMap.__len__() and relationMap.__len__() == 0:
       return
 
-    from redis import Redis
-    red = Redis()
-    for cid, value in cid_danmakuIdSet.items():
-      red.sadd(cid, *value)
-
     print(
       'Removed exist ids, danmaku map len: %s, relation map len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
 
@@ -158,7 +161,12 @@ def save_danmaku_to_db(danmakuList: List[CustomTag], cid_aid: MutableMapping[int
     print(e)
     raise e
   else:
-    print('Saved success')
+    print('Save to DB success')
+    from redis import Redis
+    red = Redis()
+    for cid, value in cid_danmakuIdSet.items():
+      red.sadd(cid, *value)
+      print('[Saved] redis. cid: %s, len: %s' % (cid, value.__len__()))
   finally:
     session.close()
     print('[SAVED] danmakuMap.len: %s' % danmakuMap.__len__())
@@ -173,16 +181,18 @@ def removeExist(danmakuMap: MutableMapping[int, DanmakuDO],
   """
   剔除已经存在的danmaku
   """
+  print('from redis get cids: %s' % cids.__len__())
   cids_all_danmakuId: Set[int] = set()
-  import redis
-  red = redis.client.Redis()
+  from redis import Redis
+  red = Redis()
   for cid in cids:
     for item in red.smembers(cid):
       cids_all_danmakuId.add(int(item))
 
+  print('all danmaku len: %s' % cids_all_danmakuId.__len__())
   for _id in cids_all_danmakuId:
-    danmakuMap.pop(_id)
-    relationMap.pop(_id)
+    danmakuMap.pop(_id, None)
+    relationMap.pop(_id, None)
 
 
 async def execute_sql(sql: str) -> ResultProxy:
@@ -235,8 +245,7 @@ def main(_map: MutableMapping[str, CustomFile]):
     pool = Pool(processes = cpu_use_number)
     for item in res:
       value = item.get()
-      save_danmaku_to_db(value[0], value[1])
-      # pool.apply_async(func = save_danmaku_to_db, args = (value[0], value[1],))
+      pool.apply_async(func = save_danmaku_to_db, args = (value[0], value[1],))
     pool.close()
     pool.join()
     log.info('[Done] danmaku')
