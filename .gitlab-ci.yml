@@ -1,4 +1,4 @@
-image: docker:stable
+image: luomingxu/docker:stable
 
 variables:
   Cache_Location: /cache/$CI_PROJECT_NAME-$CI_PROJECT_ID-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
@@ -13,7 +13,14 @@ docker:
   only:
     variables:
       - $CI_COMMIT_TAG =~ /^v.*$/
+  before_script:
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - cp $SSH_KEY ~/.ssh/id_ed25519
+    - git config --global user.name "$GitUserName"
+    - git config --global user.email "$GitUserEmail"
   script:
+    - git submodule update --init --recursive config
     - pwd
     - mkdir -p $Cache_Location
     - cp -r ./* $Cache_Location/
