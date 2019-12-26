@@ -37,6 +37,6 @@ def send(to: str, e_str: str):
     server.send_message(msg)
   except Exception as e:
     log.exception(e)
-    log.error('[EMail] Send failed')
+    log.error('[eMail] Send failed')
   finally:
     server.quit()
