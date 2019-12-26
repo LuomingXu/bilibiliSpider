@@ -38,7 +38,7 @@ def __main__(mids: Set[int]):
               log.info('[UPDATE] mid: %s, key: %s, new: %s, old: %s' % (i, item[0], newValue, item[1]))
               setattr(dbData, item[0], newValue)
           except Exception as e:
-            log.error(e.__str__())
+            raise e
         if not isUpdated:
           log.info('[EQUAL] mid: %s' % i)
       else:
@@ -47,8 +47,8 @@ def __main__(mids: Set[int]):
 
       session.commit()
     except Exception as e:
-      log.exception(e)
       log.error('mid: %s, data: %s' % (i, res.data))
+      raise e
     finally:
       log.info('[SLEEP] 2s')
       time.sleep(2)

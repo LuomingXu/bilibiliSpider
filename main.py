@@ -5,6 +5,7 @@ import time
 from datetime import datetime, timezone, timedelta
 from typing import MutableMapping
 
+import _email
 import _s3
 import _user
 import config
@@ -12,7 +13,7 @@ import danmaku
 import local_processing
 import online
 from config import log, regular_spider_delta, quick_spider_delta, night_spider_delta, \
-  regular_set, quick_set, night_set
+  regular_set, quick_set, night_set, email_to_addr
 
 
 def set_req_delta(hour: int) -> int:
@@ -31,9 +32,9 @@ if __name__ == '__main__':
   try:
     while True:
       if time.time_ns() - last_request_time >= delta:
-        if platform.system() == 'Windows':
+        if platform.system() != 'Windows':
           """
-          在性能不足的服务器上进行爬虫的工作, 保存获取的数据到oss
+          在性能不足的服务器上进行爬虫的工作, 保存获取的数据到cos
           """
           log.info('[Spider start]')
 
@@ -70,5 +71,5 @@ if __name__ == '__main__':
     """
     异常报告    
     """
-    # todo email发送exception
     log.exception(e)
+    _email.send(email_to_addr)

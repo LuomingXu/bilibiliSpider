@@ -63,8 +63,8 @@ async def query_all_cid_of_av(avInfo: AVInfoDO):
     session.commit()
     await filter_cid_which_isexist(avInfo.aid, map)
   except Exception as e:
-    log.exception(e)
     log.error('aid: %s' % avInfo.aid)
+    raise e
   finally:
     session.close()
 
@@ -111,8 +111,8 @@ async def query_all_danmaku_of_cid(cid: int):
 
     NEED_SAVE_DANMAKUs[cid] = soup.find_all(name = 'd')
   except Exception as e:
-    log.exception(e)
     log.error('cid: %s' % cid)
+    raise e
 
 
 def lookahead(iterable):
@@ -215,7 +215,7 @@ async def execute_sql(sql: str) -> ResultProxy:
   try:
     return conn.execute(sql)
   except Exception as e:
-    log.exception(e)
+    raise e
   finally:
     conn.close()
 
