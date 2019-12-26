@@ -1,5 +1,4 @@
 import smtplib
-import traceback
 from datetime import datetime, timedelta, timezone
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
@@ -14,19 +13,18 @@ def _format(s: str):
   return formataddr((Header(_name, 'utf-8').encode(), _addr))
 
 
-def send(to: str):
+def send(to: str, e_str: str):
   msg = MIMEMultipart()
 
   msg['From'] = _format('Tencent Server <%s>' % email_from_addr)
   msg['To'] = _format('Exception Receive <%s>' % to)
   msg['Subject'] = Header('Spider Exception', 'utf-8').encode()
 
-  ex = traceback.format_exc()
-  ex = ex.replace('<', '(')
-  ex = ex.replace('>', ')')
-  ex = ex.replace('\n', '<br>')
-  ex = ex.replace(' ', '&nbsp;')
-  content = email_content_template.replace('__exception__', ex)
+  e_str = e_str.replace('<', '(')
+  e_str = e_str.replace('>', ')')
+  e_str = e_str.replace('\n', '<br>')
+  e_str = e_str.replace(' ', '&nbsp;')
+  content = email_content_template.replace('__exception__', e_str)
   content = content.replace('__datetime__',
                             datetime.now(timezone(timedelta(hours = 8))).strftime('%Y-%m-%d %H:%M:%S'))
   msg.attach(MIMEText(content, 'html', 'utf-8'))

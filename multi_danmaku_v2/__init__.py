@@ -2,10 +2,12 @@ import asyncio
 import gc
 import math
 import multiprocessing
+import traceback
 from datetime import datetime
 from datetime import timezone, timedelta
 from multiprocessing import Pool
 from multiprocessing.pool import ApplyResult
+from queue import Queue
 from typing import List, MutableMapping, Set, AbstractSet
 
 from bs4 import BeautifulSoup
@@ -43,23 +45,32 @@ def remove_data(_map: MutableMapping[str, CustomFile]):
       _map.pop(cid_key[cid], None)
 
 
-def analyze_danmaku(_map: MutableMapping[str, CustomFile]) -> (List[CustomTag], MutableMapping[int, int]):
+def analyze_danmaku(q: Queue, _map: MutableMapping[str, CustomFile]) -> (List[CustomTag], MutableMapping[int, int]):
   danmakuList: List[CustomTag] = []
   cid_aid: MutableMapping[int, int] = {}
-  for file_name, file in _map.items():
-    if file.file_type is FileType.Online:
-      online.processing_data(file.content,
-                             datetime.fromtimestamp(int(file_name) / 1_000_000_000, timezone(timedelta(hours = 8))))
-    else:
-      soup: BeautifulSoup = BeautifulSoup(markup = file.content, features = 'lxml')
-      l: List = file_name.split('-')
-      aid: int = int(l[0])
-      cid: int = int(l[1])
-      cid_aid[cid] = aid
-      for item in soup.find_all(name = 'd'):
-        danmakuList.append(CustomTag(content = item.text, tag_content = item['p'], aid = aid, cid = cid))
 
-  print('danmakuList len: %s, cid_aid len: %s' % (danmakuList.__len__(), cid_aid.__len__()))
+  try:
+    for file_name, file in _map.items():
+      if file.file_type is FileType.Online:
+        online.processing_data(file.content,
+                               datetime.fromtimestamp(int(file_name) / 1_000_000_000, timezone(timedelta(hours = 8))))
+      else:
+        soup: BeautifulSoup = BeautifulSoup(markup = file.content, features = 'lxml')
+        l: List = file_name.split('-')
+        aid: int = int(l[0])
+        cid: int = int(l[1])
+        cid_aid[cid] = aid
+        for item in soup.find_all(name = 'd'):
+          danmakuList.append(CustomTag(content = item.text, tag_content = item['p'], aid = aid, cid = cid))
+
+  except Exception:  # save exception to queue waiting for main thread process
+    name = multiprocessing.current_process().name
+    _map: MutableMapping[str, str] = {name: traceback.format_exc()}
+    q.put(_map)
+    print('Oops: ', name)
+  else:
+    print('danmakuList len: %s, cid_aid len: %s' % (danmakuList.__len__(), cid_aid.__len__()))
+
   return danmakuList, cid_aid
 
 
@@ -106,7 +117,7 @@ async def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
     log.info('All av-cid relation exist')
 
 
-def save_danmaku_to_db(danmakuList: List[CustomTag], cid_aid: MutableMapping[int, int]):
+def save_danmaku_to_db(q: Queue, danmakuList: List[CustomTag], cid_aid: MutableMapping[int, int]):
   print('[FORMER] danmakuList len: %s, cid_aid len: %s' % (danmakuList.__len__(), cid_aid.__len__()))
   cids: AbstractSet[int] = cid_aid.keys()
   danmakuMap: MutableMapping[int, DanmakuDO] = {}
@@ -156,10 +167,12 @@ def save_danmaku_to_db(danmakuList: List[CustomTag], cid_aid: MutableMapping[int
     session.bulk_save_objects(danmakuMap.values() if danmakuMap.values().__len__() > 0 else None)
     session.bulk_save_objects(relationMap.values() if relationMap.values().__len__() > 0 else None)
     session.commit()
-  except Exception as e:
+  except Exception:
     session.rollback()
-    print(e)
-    raise e
+    name = multiprocessing.current_process().name
+    _map: MutableMapping[str, str] = {name: traceback.format_exc()}
+    q.put(_map)
+    print('Oops: ', name)
   else:
     print('Save to DB success')
     for cid, value in cid_danmakuIdSet.items():
@@ -205,6 +218,7 @@ def main(_map: MutableMapping[str, CustomFile]):
   """
   将map分成几组进行多进程处理
   """
+  q = multiprocessing.Manager().Queue()
   log.info('multiprocess tasks')
   cpu_use_number = int(multiprocessing.cpu_count() / 3 * 2)  # 使用总核心数的2/3
   pool = Pool(processes = cpu_use_number)
@@ -215,11 +229,14 @@ def main(_map: MutableMapping[str, CustomFile]):
   for i, item in enumerate(_map.items()):
     map_temp[item[0]] = item[1]
     if map_temp.__len__() % size == 0:
-      res.append(pool.apply_async(func = analyze_danmaku, args = (map_temp,)))
+      res.append(pool.apply_async(func = analyze_danmaku, args = (q, map_temp,)))
       map_temp = {}
-  res.append(pool.apply_async(func = analyze_danmaku, args = (map_temp,)))
+  res.append(pool.apply_async(func = analyze_danmaku, args = (q, map_temp,)))
   pool.close()
   pool.join()
+  if q.qsize() > 0:  # 当queue的size大于0的话, 那就是进程里面出现了错误, 发送, 结束任务
+    log.error('analyze occurs error')
+    raise Exception(q)
   log.info('[Done] analyze')
   del _map
   gc.collect()
@@ -244,6 +261,9 @@ def main(_map: MutableMapping[str, CustomFile]):
       pool.apply_async(func = save_danmaku_to_db, args = (value[0], value[1],))
     pool.close()
     pool.join()
+    if q.qsize() > 0:  # 当queue的size大于0的话, 那就是进程里面出现了错误, 发送, 结束任务
+      log.error('save danmakus to DB occurs error')
+      raise Exception(q)
     log.info('[Done] danmaku')
     log.info('[DONE] analyze spiders\' data')
   except Exception as e:
