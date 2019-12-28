@@ -20,7 +20,7 @@ def do_not_get_cid(aid: int) -> bool:
     return False
   else:
     log.info('aid: %s, req times: %s' % (aid, res))
-    if res >= 3:
+    if int(res) >= 3:
       return True
     else:
       red.incr(key, 1)
