@@ -15,8 +15,9 @@ docker:
       - $CI_COMMIT_TAG =~ /^v.*$/
   before_script:
     - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
     - cp $SSH_KEY ~/.ssh/id_ed25519
+    - chmod 400 ~/.ssh/id_ed25519
+    - ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
     - git config --global user.name "$GitUserName"
     - git config --global user.email "$GitUserEmail"
   script:
@@ -28,7 +29,6 @@ docker:
     - docker build -t $image .
     - docker tag $image $Image_Name:latest
   tags:
-    - local-ci
     - docker-executor
 
 deploy:
@@ -44,5 +44,4 @@ deploy:
     - docker-compose version
     - docker-compose up -d
   tags:
-    - local-ci
     - docker-executor
