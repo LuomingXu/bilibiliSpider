@@ -12,19 +12,25 @@ from danmaku.DO import DanmakuDO, DanmakuRealationDO, AVCidsDO
 from danmaku.Entity import AvDanmakuCid
 
 
-def do_not_get_cid(aid: int) -> bool:
+def is_req_danmaku(cid_len: int, aid: int) -> bool:
+  if cid_len <= 3:
+    return False
+  elif cid_len <= 10:
+    return req_times(aid) >= 6
+  return req_times(aid) >= 3
+
+
+def req_times(aid: int) -> int:
   key = str(aid.__str__() + '-req-times')
   res = red.get(key)
   if res is None:
     red.set(key, 1)
-    return False
+    return 1
   else:
+    res = int(res)
     log.info('aid: %s, req times: %s' % (aid, res))
-    if int(res) >= 3:
-      return True
-    else:
-      red.incr(key, 1)
-      return False
+    red.incr(key, 1)
+    return res
 
 
 def getting_data(aids: List[int]) -> MutableMapping[str, str]:
@@ -39,7 +45,7 @@ def getting_data(aids: List[int]) -> MutableMapping[str, str]:
       for item in l:
         danmakuCids.append(selfusepy.parse_json(json.dumps(item), AvDanmakuCid()))
 
-    if danmakuCids.__len__() > 32 and do_not_get_cid(aid):  # 如果有大量的cid, 就只获取三次
+    if is_req_danmaku(danmakuCids.__len__(), aid):  # 如果有大量的cid, 就只进行有限获取
       log.info('[Continue] do not get cids. aid: %s' % aid)
       continue
 
