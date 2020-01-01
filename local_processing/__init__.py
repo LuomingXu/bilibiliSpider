@@ -39,12 +39,12 @@ def all_files(path: str, _map: MutableMapping[str, CustomFile] = None) -> Mutabl
 
 def main():
   file_temp_dir = 'data-temp/'
-  keys: Set[str] = _s3.get_all_objects_key()
-  _s3.download_objects(file_temp_dir, keys)
+  # keys: Set[str] = _s3.get_all_objects_key()
+  # _s3.download_objects(file_temp_dir, keys)
   _map = all_files(file_temp_dir)
   log.info('Waiting to process, len: %s' % _map.__len__())
   multi_danmaku_v2.main(_map)  # analyze
-  shutil.rmtree(file_temp_dir, ignore_errors = True)  # 处理完毕, 删除temp文件
-  log.info('Delete temp files done')
+  # shutil.rmtree(file_temp_dir, ignore_errors = True)  # 处理完毕, 删除temp文件
+  # log.info('Delete temp files done')
 
   # todo 暂时不需要删除 _s3.delete_objects(keys)

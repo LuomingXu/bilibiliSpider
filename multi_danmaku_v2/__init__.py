@@ -100,7 +100,6 @@ async def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
       obj.cid = cid
       obj.aid = aid
       objs.append(obj)
-      print('obj', obj)
 
     try:
       session.bulk_save_objects(objs)
@@ -117,9 +116,9 @@ async def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
     log.info('All av-cid relation exist')
 
 
-def save_danmaku_to_db(q: Queue, danmakuList: List[CustomTag], cid_aid: MutableMapping[int, int]):
-  print('[FORMER] danmakuList len: %s, cid_aid len: %s' % (danmakuList.__len__(), cid_aid.__len__()))
-  cids: AbstractSet[int] = cid_aid.keys()
+def deconstruct_danmaku(danmakuList: List[CustomTag], cid_aid: MutableMapping[int, int]) -> (
+    MutableMapping[int, DanmakuDO], MutableMapping[int, DanmakuRealationDO], MutableMapping[int, Set[int]]):
+  print('[Start] danmaku deconstruct len: %s, cid_aid len: %s' % (danmakuList.__len__(), cid_aid.__len__()))
   danmakuMap: MutableMapping[int, DanmakuDO] = {}
   relationMap: MutableMapping[int, DanmakuRealationDO] = {}
   cid_danmakuIdSet: MutableMapping[int, Set[int]] = {}
@@ -150,13 +149,23 @@ def save_danmaku_to_db(q: Queue, danmakuList: List[CustomTag], cid_aid: MutableM
     else:
       cid_danmakuIdSet[danmaku.cid].add(obj.id)
 
-  print('[Done] danmakus split')
+  print('[Done] deconstruct deconstruct')
   del danmakuList
   gc.collect()
+  for cid, value in cid_danmakuIdSet.items():
+    red.sadd('program-temp-%s' % cid, *value)
+    # todo 要用list, 存多重数据, 这样才能后续去重
+    print('[Saved] redis. program temp. cid: %s, len: %s' % (cid, value.__len__()))
+  return danmakuMap, relationMap, cid_danmakuIdSet
 
+
+def save_danmaku_to_db(q: Queue, danmakuMap: MutableMapping[int, DanmakuDO],
+                       relationMap: MutableMapping[int, DanmakuRealationDO],
+                       cid_danmakuIdSet: MutableMapping[int, Set[int]]):
   session = DBSession()
   try:
-    removeExist(danmakuMap, relationMap, cids)
+    remove_program_exist_ids(danmakuMap, relationMap, cid_danmakuIdSet)
+    remove_db_exist_ids(danmakuMap, relationMap, cid_danmakuIdSet.keys())
 
     if danmakuMap.__len__() == relationMap.__len__() and relationMap.__len__() == 0:
       return
@@ -187,8 +196,15 @@ def save_danmaku_to_db(q: Queue, danmakuList: List[CustomTag], cid_aid: MutableM
     gc.collect()
 
 
-def removeExist(danmakuMap: MutableMapping[int, DanmakuDO],
-                relationMap: MutableMapping[int, DanmakuRealationDO], cids: AbstractSet[int]):
+def remove_program_exist_ids(danmakuMap: MutableMapping[int, DanmakuDO],
+                             relationMap: MutableMapping[int, DanmakuRealationDO],
+                             cid_danmakuIdSet: MutableMapping[int, Set[int]]):
+  # todo 对多个进程都存在的id进行去重, 并对重复数据存储, 在最后选择一个存到db
+  pass
+
+
+def remove_db_exist_ids(danmakuMap: MutableMapping[int, DanmakuDO],
+                        relationMap: MutableMapping[int, DanmakuRealationDO], cids: AbstractSet[int]):
   """
   剔除已经存在的danmaku
   """
@@ -247,6 +263,7 @@ def main(_map: MutableMapping[str, CustomFile]):
       asyncio.set_event_loop(asyncio.new_event_loop())
       loop = asyncio.get_event_loop()
 
+    log.info('[Start] aid-cid relation')
     tasks: list = list()
     for item in res:
       value = item.get()
@@ -255,16 +272,27 @@ def main(_map: MutableMapping[str, CustomFile]):
     loop.close()
     log.info('[Done] av-cid relation')
 
-    pool = Pool(processes = cpu_use_number)
+    log.info('[Start] danmaku deconstruct')
+    danmaku_data_res: List[ApplyResult] = list()
+    pool2 = Pool(processes = cpu_use_number)
     for item in res:
       value = item.get()
-      pool.apply_async(func = save_danmaku_to_db, args = (value[0], value[1],))
-    pool.close()
-    pool.join()
+      danmaku_data_res.append(pool2.apply_async(func = deconstruct_danmaku, args = (value[0], value[1],)))
+    pool2.close()
+    pool2.join()
+    log.info('[Done] deconstruct')
+
+    log.info('[Start] save danmaku to db')
+    pool3 = Pool(processes = cpu_use_number)
+    for item in danmaku_data_res:
+      value = item.get()
+      pool3.apply_async(func = save_danmaku_to_db, args = (q, value[0], value[1], value[2],))
+    pool3.close()
+    pool3.join()
     if q.qsize() > 0:  # 当queue的size大于0的话, 那就是进程里面出现了错误, 发送, 结束任务
       log.error('save danmakus to DB occurs error')
       raise Exception(q)
-    log.info('[Done] danmaku')
+    log.info('[Done] save danmaku to DB')
     log.info('[DONE] analyze spiders\' data')
   except Exception as e:
     raise e

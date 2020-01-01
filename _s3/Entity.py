@@ -5,6 +5,50 @@ from selfusepy.utils import override_str
 
 
 @override_str
+class Objects_v2(BaseJsonObject):
+  """
+  s3 api list_objects_v2() result class
+  """
+
+  def __init__(self):
+    self.IsTruncated: bool = False
+    self.Contents: List[Objects_v2.Contents] = [Objects_v2.Contents()]
+    self.Name: str = ''
+    self.Prefix: str = ''
+    self.Delimiter: str = ''
+    self.MaxKeys: int = -1
+    self.CommonPrefixes: List[Objects_v2.CommonPrefixes] = [Objects_v2.CommonPrefixes()]
+    self.EncodingType: str = ''
+    self.KeyCount: int = -1
+    self.ContinuationToken: str = ''
+    self.NextContinuationToken: str = ''
+    self.StartAfter: str = ''
+
+  @override_str
+  class Contents(BaseJsonObject):
+
+    def __init__(self):
+      self.Key: str = ''
+      self.LastModified: str = ''
+      self.ETag: str = ''
+      self.Size: int = -1
+      self.StorageClass: str = ''
+      self.Owner: Objects_v2.Contents.Owner = Objects_v2.Contents.Owner()
+
+    @override_str
+    class Owner(BaseJsonObject):
+
+      def __init__(self):
+        self.DisplayName: str = ''
+        self.ID: str = ''
+
+  @override_str
+  class CommonPrefixes(BaseJsonObject):
+    def __init__(self):
+      self.Prefix: str = ''
+
+
+@override_str
 class Objects(BaseJsonObject):
   """
   s3 api list_objects_v2() result class
@@ -12,6 +56,8 @@ class Objects(BaseJsonObject):
 
   def __init__(self):
     self.IsTruncated: bool = False
+    self.Marker: str = ''
+    self.NextMarker: str = ''
     self.Contents: List[Objects.Contents] = [Objects.Contents()]
     self.Name: str = ''
     self.Prefix: str = ''
@@ -19,10 +65,6 @@ class Objects(BaseJsonObject):
     self.MaxKeys: int = -1
     self.CommonPrefixes: List[Objects.CommonPrefixes] = [Objects.CommonPrefixes()]
     self.EncodingType: str = ''
-    self.KeyCount: int = -1
-    self.ContinuationToken: str = ''
-    self.NextContinuationToken: str = ''
-    self.StartAfter: str = ''
 
   @override_str
   class Contents(BaseJsonObject):

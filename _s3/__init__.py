@@ -5,20 +5,42 @@ from typing import Set, MutableMapping
 import boto3
 import selfusepy
 
-from _s3.Entity import Objects, DeleteObjects
+from _s3.Entity import Objects_v2, Objects, DeleteObjects
 from config import s3_tx_bucket, s3_tx_endpoint, s3_tx_access_key, s3_tx_secret_key, log
 
 tx_session = boto3.session.Session(aws_access_key_id = s3_tx_access_key, aws_secret_access_key = s3_tx_secret_key)
 tx_client = tx_session.client('s3', endpoint_url = s3_tx_endpoint)
 
 
-def get_all_objects_key() -> Set[str]:
+def get_all_objects_key_v2() -> Set[str]:
   res: dict = tx_client.list_objects_v2(Bucket = s3_tx_bucket, Prefix = '')
   res.pop('ResponseMetadata', None)  # remove useless key's data
-  obj: Objects = selfusepy.parse_json(json.dumps(res, default = str), Objects())
+  obj: Objects_v2 = selfusepy.parse_json(json.dumps(res, default = str), Objects_v2())
   object_keys: Set[str] = set()
   for item in obj.Contents:
     object_keys.add(item.Key)
+  log.info('[s3] received %s objects' % object_keys.__len__())
+  return object_keys
+
+
+def get_all_objects_key() -> Set[str]:
+  Marker = None
+  object_keys: Set[str] = set()
+  while True:
+    args = dict(Bucket = s3_tx_bucket, Prefix = '')
+    if Marker:
+      args['Marker'] = Marker
+    res: dict = tx_client.list_objects(**args)
+    res.pop('ResponseMetadata', None)  # remove useless key's data
+    obj: Objects = selfusepy.parse_json(json.dumps(res, default = str), Objects())
+    for item in obj.Contents:
+      object_keys.add(item.Key)
+
+    if not obj.IsTruncated:
+      break
+    else:
+      Marker = obj.NextMarker
+
   log.info('[s3] received %s objects' % object_keys.__len__())
   return object_keys
 

@@ -99,7 +99,7 @@ async def query_all_danmaku_of_cid(cid: int):
 
     CID_MaxLimit[cid] = int(soup.find(name = 'maxlimit').text)
 
-    # 不再保存已经达到最大数量限制的弹幕, todo, 虽然有可能后续有新的弹幕, 老的已经被清了
+    # 不再保存已经达到最大数量限制的弹幕
     sql: str = 'select count(danmaku_id) from cid_danmaku where cid = %s' % cid
     r: ResultProxy = await execute_sql(sql)
     count: int = int(r.fetchone()[0])
