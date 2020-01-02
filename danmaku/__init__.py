@@ -15,22 +15,22 @@ from danmaku.Entity import AvDanmakuCid
 def is_req_danmaku(cid_len: int, aid: int) -> bool:
   if cid_len <= 3:
     return False
-  elif cid_len <= 10:
-    return req_times(aid) >= 6
-  return req_times(aid) >= 3
-
-
-def req_times(aid: int) -> int:
-  key = str(aid.__str__() + '-req-times')
-  res = red.get(key)
-  if res is None:
-    red.set(key, 1)
-    return 1
   else:
-    res = int(res)
-    log.info('aid: %s, req times: %s' % (aid, res))
-    red.incr(key, 1)
-    return res
+    key = str(aid.__str__() + '-req-times')
+    res = red.get(key)
+    if res:
+      res = int(res)
+    else:
+      red.set(key, 1)
+      res = 1
+    # log.info('aid: %s, req times: %s' % (aid, res))
+    if (cid_len < 10 and res > 6) or (cid_len >= 10 and res > 3):
+      log.info('aid: %s, req times: %s. %s' % (aid, res, True))
+      return True
+    else:
+      red.incr(key, 1)
+      log.info('aid: %s, req times: %s. %s' % (aid, res, False))
+      return False
 
 
 def getting_data(aids: List[int]) -> MutableMapping[str, str]:
