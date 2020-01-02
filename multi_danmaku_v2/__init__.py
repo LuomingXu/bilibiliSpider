@@ -3,6 +3,7 @@ import gc
 import math
 import multiprocessing
 import traceback
+from collections import Counter
 from datetime import datetime
 from datetime import timezone, timedelta
 from multiprocessing import Pool
@@ -153,8 +154,7 @@ def deconstruct_danmaku(danmakuList: List[CustomTag], cid_aid: MutableMapping[in
   del danmakuList
   gc.collect()
   for cid, value in cid_danmakuIdSet.items():
-    red.sadd('program-temp-%s' % cid, *value)
-    # todo 要用list, 存多重数据, 这样才能后续去重
+    red.lpush('program-temp-%s' % cid, *value)
     print('[Saved] redis. program temp. cid: %s, len: %s' % (cid, value.__len__()))
   return danmakuMap, relationMap, cid_danmakuIdSet
 
@@ -164,14 +164,14 @@ def save_danmaku_to_db(q: Queue, danmakuMap: MutableMapping[int, DanmakuDO],
                        cid_danmakuIdSet: MutableMapping[int, Set[int]]):
   session = DBSession()
   try:
+    print('[Former] danmaku len: %s, relation len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
     remove_program_exist_ids(danmakuMap, relationMap, cid_danmakuIdSet)
+    print('[Removed Program ids] danmaku len: %s, relation len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
     remove_db_exist_ids(danmakuMap, relationMap, cid_danmakuIdSet.keys())
+    print('[Removed DB ids] danmaku len: %s, relation len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
 
-    if danmakuMap.__len__() == relationMap.__len__() and relationMap.__len__() == 0:
-      return
-
-    print(
-      'Removed exist ids, danmaku map len: %s, relation map len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
+    if danmakuMap.__len__() != relationMap.__len__():
+      raise Exception("danmaku's len is not eq relation's len")
 
     session.bulk_save_objects(danmakuMap.values() if danmakuMap.values().__len__() > 0 else None)
     session.bulk_save_objects(relationMap.values() if relationMap.values().__len__() > 0 else None)
@@ -189,8 +189,7 @@ def save_danmaku_to_db(q: Queue, danmakuMap: MutableMapping[int, DanmakuDO],
       print('[Saved] redis. cid: %s, len: %s' % (cid, value.__len__()))
   finally:
     session.close()
-    print('[SAVED] danmakuMap.len: %s' % danmakuMap.__len__())
-    print('[SAVED] relationMap.len: %s' % relationMap.__len__())
+    print('[SAVED] len: %s' % danmakuMap.__len__())
     del danmakuMap
     del relationMap
     gc.collect()
@@ -199,14 +198,36 @@ def save_danmaku_to_db(q: Queue, danmakuMap: MutableMapping[int, DanmakuDO],
 def remove_program_exist_ids(danmakuMap: MutableMapping[int, DanmakuDO],
                              relationMap: MutableMapping[int, DanmakuRealationDO],
                              cid_danmakuIdSet: MutableMapping[int, Set[int]]):
-  # todo 对多个进程都存在的id进行去重, 并对重复数据存储, 在最后选择一个存到db
-  pass
+  res: List = list()
+  for cid in cid_danmakuIdSet.keys():
+    res.extend(red.lrange('program-temp-%s' % cid, 0, -1))
+
+  count: dict = dict(Counter(res))
+  duplicate_ids: Set[int] = set()
+  for key, value in count.items():
+    if value > 1:
+      duplicate_ids.add(key)
+
+  duplicate_danmaku: MutableMapping[int, DanmakuDO] = {}
+  duplicate_relation: MutableMapping[int, DanmakuRealationDO] = {}
+  for id in duplicate_ids:
+    danmaku = danmakuMap.pop(id, None)
+    relation = relationMap.pop(id, None)
+    if danmaku is not None:
+      duplicate_danmaku[id] = danmaku
+    if relation is not None:
+      duplicate_relation[id] = relation
+
+  f = open('./%s-danmaku.txt' % multiprocessing.current_process().name, 'w', encoding = 'utf-8')
+  f.write('\n'.join('%s->%s' % item for item in duplicate_danmaku.items()))
+  f = open('./%s-relation.txt' % multiprocessing.current_process().name, 'w', encoding = 'utf-8')
+  f.write('\n'.join('%s->%s' % item for item in duplicate_relation.items()))
 
 
 def remove_db_exist_ids(danmakuMap: MutableMapping[int, DanmakuDO],
                         relationMap: MutableMapping[int, DanmakuRealationDO], cids: AbstractSet[int]):
   """
-  剔除已经存在的danmaku
+  剔除数据库中已经存在的danmaku
   """
   print('from redis get cids: %s' % cids.__len__())
   cids_all_danmakuId: Set[int] = set()
@@ -242,15 +263,15 @@ def main(_map: MutableMapping[str, CustomFile]):
   map_temp: MutableMapping[str, CustomFile] = {}
 
   res: List[ApplyResult] = list()
-  for i, item in enumerate(_map.items()):
-    map_temp[item[0]] = item[1]
+  for key, value in _map.items():
+    map_temp[key] = value
     if map_temp.__len__() % size == 0:
       res.append(pool.apply_async(func = analyze_danmaku, args = (q, map_temp,)))
       map_temp = {}
   res.append(pool.apply_async(func = analyze_danmaku, args = (q, map_temp,)))
   pool.close()
   pool.join()
-  if q.qsize() > 0:  # 当queue的size大于0的话, 那就是进程里面出现了错误, 发送, 结束任务
+  if q.qsize() > 0:  # 当queue的size大于0的话, 那就是进程里面出现了错误, raise, 结束任务
     log.error('analyze occurs error')
     raise Exception(q)
   log.info('[Done] analyze')
@@ -289,9 +310,13 @@ def main(_map: MutableMapping[str, CustomFile]):
       pool3.apply_async(func = save_danmaku_to_db, args = (q, value[0], value[1], value[2],))
     pool3.close()
     pool3.join()
-    if q.qsize() > 0:  # 当queue的size大于0的话, 那就是进程里面出现了错误, 发送, 结束任务
+    if q.qsize() > 0:  # 当queue的size大于0的话, 那就是进程里面出现了错误, raise, 结束任务
       log.error('save danmakus to DB occurs error')
       raise Exception(q)
+
+    for item in red.keys('program-temp-*'):  # 删除为了剔除程序中的重复danmaku_id而存储的keys
+      red.delete(item)
+
     log.info('[Done] save danmaku to DB')
     log.info('[DONE] analyze spiders\' data')
   except Exception as e:
