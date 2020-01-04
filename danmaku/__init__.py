@@ -67,5 +67,8 @@ def getting_data(aids: List[int]) -> MutableMapping[str, str]:
       log.exception(e)
       log.error(resAllCids.data)
       log.error(aid)
-      raise e
+      import traceback, _email
+      from config import email_to_addr
+      _email.send(email_to_addr, traceback.format_exc() + '\naid: %d' % aid)
+      time.sleep(10)
   return file_map
