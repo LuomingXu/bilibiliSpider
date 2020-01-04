@@ -49,7 +49,7 @@ def remove_data(_map: MutableMapping[str, CustomFile]):
 def analyze_danmaku(q: Queue, _map: MutableMapping[str, CustomFile]) -> (List[CustomTag], MutableMapping[int, int]):
   danmakuList: List[CustomTag] = []
   cid_aid: MutableMapping[int, int] = {}
-
+  print(multiprocessing.current_process().name, 'analyze danmakus')
   try:
     for file_name, file in _map.items():
       if file.file_type is FileType.Online:
@@ -79,10 +79,12 @@ async def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
   """
   保存av与cid的关系
   """
+  if cid_aid.keys().__len__() < 1:
+    return
   objs: List[AVCidsDO] = []
   session = DBSession()
 
-  sql: str = 'select cid from av_cids where cid in (\'\', %s)' % ','.join('%s' % item for item in cid_aid.keys())
+  sql: str = 'select cid from av_cids where cid in (%s)' % ','.join('%s' % item for item in cid_aid.keys())
 
   cids: ResultProxy = await execute_sql(sql)
   exist_cids: Set[int] = set()
@@ -92,7 +94,7 @@ async def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
     """
     exist_cids.add(int(item[0]))
 
-  print('av-cid', exist_cids)
+  print('exist cids: ', exist_cids)
   if not exist_cids.__len__() == cid_aid.__len__():
     for cid, aid in cid_aid.items():
       if exist_cids.__contains__(cid):
@@ -150,12 +152,16 @@ def deconstruct_danmaku(danmakuList: List[CustomTag], cid_aid: MutableMapping[in
     else:
       cid_danmakuIdSet[danmaku.cid].add(obj.id)
 
-  print('[Done] deconstruct deconstruct')
+  print('[Done] danmaku deconstruct')
   del danmakuList
   gc.collect()
   for cid, value in cid_danmakuIdSet.items():
-    red.lpush('program-temp-%s' % cid, *value)
-    print('[Saved] redis. program temp. cid: %s, len: %s' % (cid, value.__len__()))
+    try:
+      red.lpush('program-temp-%s' % cid, *value)
+    except Exception:
+      traceback.print_exc()
+      print('[ERROR] redis. program temp. cid: %s' % cid)
+  print('[DONE] save temp danmaku ids to redis')
   return danmakuMap, relationMap, cid_danmakuIdSet
 
 
@@ -166,15 +172,18 @@ def save_danmaku_to_db(q: Queue, danmakuMap: MutableMapping[int, DanmakuDO],
   try:
     print('[Former] danmaku len: %s, relation len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
     remove_program_exist_ids(danmakuMap, relationMap, cid_danmakuIdSet)
-    print('[Removed Program ids] danmaku len: %s, relation len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
+    print(
+      '[After Removed Program ids] danmaku len: %s, relation len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
     remove_db_exist_ids(danmakuMap, relationMap, cid_danmakuIdSet.keys())
-    print('[Removed DB ids] danmaku len: %s, relation len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
+    print('[After Removed DB ids] danmaku len: %s, relation len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
 
     if danmakuMap.__len__() != relationMap.__len__():
       raise Exception("danmaku's len is not eq relation's len")
 
-    session.bulk_save_objects(danmakuMap.values() if danmakuMap.values().__len__() > 0 else None)
-    session.bulk_save_objects(relationMap.values() if relationMap.values().__len__() > 0 else None)
+    if danmakuMap.values():
+      session.bulk_save_objects(danmakuMap.values())
+    if relationMap.values():
+      session.bulk_save_objects(relationMap.values())
     session.commit()
   except Exception:
     session.rollback()
@@ -183,13 +192,16 @@ def save_danmaku_to_db(q: Queue, danmakuMap: MutableMapping[int, DanmakuDO],
     q.put(_map)
     print('Oops: ', name)
   else:
-    print('Save to DB success')
+    print('Save to DB success, len: %s' % danmakuMap.__len__())
     for cid, value in cid_danmakuIdSet.items():
-      red.sadd(cid, *value)
-      print('[Saved] redis. cid: %s, len: %s' % (cid, value.__len__()))
+      try:
+        red.sadd(cid, *value)
+      except Exception:
+        traceback.print_exc()
+        print('[ERROR] redis. cid: %s' % cid)
+    print('[DONE] save danmaku ids to redis')
   finally:
     session.close()
-    print('[SAVED] len: %s' % danmakuMap.__len__())
     del danmakuMap
     del relationMap
     gc.collect()
@@ -218,10 +230,12 @@ def remove_program_exist_ids(danmakuMap: MutableMapping[int, DanmakuDO],
     if relation is not None:
       duplicate_relation[id] = relation
 
-  f = open('./%s-danmaku.txt' % multiprocessing.current_process().name, 'w', encoding = 'utf-8')
-  f.write('\n'.join('%s->%s' % item for item in duplicate_danmaku.items()))
-  f = open('./%s-relation.txt' % multiprocessing.current_process().name, 'w', encoding = 'utf-8')
-  f.write('\n'.join('%s->%s' % item for item in duplicate_relation.items()))
+  if duplicate_danmaku.__len__() > 0:
+    f = open('./%s-danmaku.txt' % multiprocessing.current_process().name, 'w', encoding = 'utf-8')
+    f.write('\n'.join('%s->%s' % item for item in duplicate_danmaku.items()))
+  if duplicate_relation.__len__() > 0:
+    f = open('./%s-relation.txt' % multiprocessing.current_process().name, 'w', encoding = 'utf-8')
+    f.write('\n'.join('%s->%s' % item for item in duplicate_relation.items()))
 
 
 def remove_db_exist_ids(danmakuMap: MutableMapping[int, DanmakuDO],
@@ -316,7 +330,7 @@ def main(_map: MutableMapping[str, CustomFile]):
 
     for item in red.keys('program-temp-*'):  # 删除为了剔除程序中的重复danmaku_id而存储的keys
       red.delete(item)
-
+    log.info('[Delete] redis temp')
     log.info('[Done] save danmaku to DB')
     log.info('[DONE] analyze spiders\' data')
   except Exception as e:

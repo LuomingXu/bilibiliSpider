@@ -37,14 +37,38 @@ def all_files(path: str, _map: MutableMapping[str, CustomFile] = None) -> Mutabl
   return _map
 
 
-def main():
-  file_temp_dir = 'data-temp/'
-  # keys: Set[str] = _s3.get_all_objects_key()
-  # _s3.download_objects(file_temp_dir, keys)
-  _map = all_files(file_temp_dir)
-  log.info('Waiting to process, len: %s' % _map.__len__())
-  multi_danmaku_v2.main(_map)  # analyze
-  # shutil.rmtree(file_temp_dir, ignore_errors = True)  # 处理完毕, 删除temp文件
-  # log.info('Delete temp files done')
+def gen_objectKeys_from_dir(_dir: str, keys: Set[str] = None):
+  if keys is None:
+    keys = set()
+  dir_or_files = os.listdir(_dir)
+  for item in dir_or_files:
+    current_path = '%s/%s' % (_dir, item)
+    if os.path.isdir(current_path):
+      gen_objectKeys_from_dir(current_path, keys)
+    else:
+      abspath = os.path.abspath(current_path).replace('\\', '/')
+      i = abspath.find('data-temp')
+      keys.add(str(abspath[i:]).replace('data-temp/', ''))
+  return keys
 
-  # todo 暂时不需要删除 _s3.delete_objects(keys)
+
+def main():
+  temp_file_dir = 'data-temp/'
+  keys: Set[str] = _s3.get_all_objects_key()
+  _s3.download_objects(temp_file_dir, keys)
+  for _dir in os.listdir(temp_file_dir):
+    _dir = temp_file_dir + _dir + '/'
+    dir_keys: Set[str] = gen_objectKeys_from_dir(_dir)
+    log.info('Analyze dir: %s' % _dir)
+    try:
+      _map = all_files(_dir)
+      log.info('Waiting to process, files len: %s' % _map.__len__())
+      multi_danmaku_v2.main(_map)  # analyze
+    except Exception as e:
+      log.error('dir: %s occurs error' % _dir)
+      raise e
+    else:
+      shutil.rmtree(_dir, ignore_errors = True)  # 处理完毕, 删除temp文件
+      log.info('Delete temp files done')
+      _s3.delete_objects(dir_keys)
+      log.info('Delete objects done')

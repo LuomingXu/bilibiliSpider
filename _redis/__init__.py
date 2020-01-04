@@ -3,7 +3,7 @@ from typing import MutableMapping, Set
 
 from redis.client import Redis
 
-red = Redis(db = 2)
+red = Redis(db = 1)
 
 
 def delete_all():
@@ -84,7 +84,34 @@ def produce(c, i:int, j:int):
 
 
 if __name__ == '__main__':
+  s: str = 'C:\\Users\\LuomingPC\\PythonRepo\\bilibiliSpider\\data-temp\\2019-12-24_21-46-18\\danmaku\\73933928-126446422-1577195272634283100.xml'
+  s = s.replace('\\', '/')
+  i = s.find('data-temp')
+  print(str(s[i:]).replace('data-temp/', ''))
+  exit(0)
+  # import os
+  # print(os.listdir('../data-temp/'))
+  # exit(90)
+  # for key in red.keys('program-temp-*'):
+  #   red.delete(key)
+  # exit(0)
 
+
+  id = 25241424977985538
+  count = 0
+  for key in red.keys():
+    value = None
+    if red.type(key) == b'set':
+      value = red.smembers(key)
+    if red.type(key) == b'list':
+      value = red.lrange(key, 0, -1)
+    count += len(value)
+    # for item in value:
+    #   item = int(item)
+    #   if item == id:
+    #     print(key)
+  print(count)
+  exit(0)
   l1 = [1, 2, 3, 4, 9, 10, 11, 12]
   l2 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
   for item1 in l1:
