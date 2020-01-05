@@ -113,13 +113,14 @@ class AVStatDO(Base):
   favorite = Column(INTEGER)
   coin = Column(INTEGER)
   share = Column(INTEGER)
+  rank = Column(TINYINT)
   now_rank = Column(TINYINT)
   his_rank = Column(TINYINT)
   like = Column(INTEGER)
   dislike = Column(INTEGER)
   online_count = Column(INTEGER)
 
-  def __init__(self, av: AV.OnlineList, get_data_time: datetime = None):
+  def __init__(self, av: AV.OnlineList, rank: int = 0, get_data_time: datetime = None):
     self.aid = av.stat.aid
     self.create_time = datetime.now(timezone(timedelta(hours = 8))) if get_data_time is None else get_data_time
     self.view = av.stat.view
@@ -128,6 +129,7 @@ class AVStatDO(Base):
     self.favorite = av.stat.favorite
     self.coin = av.stat.coin
     self.share = av.stat.share
+    self.rank = rank
     self.now_rank = av.stat.now_rank
     self.his_rank = av.stat.his_rank
     self.like = av.stat.like

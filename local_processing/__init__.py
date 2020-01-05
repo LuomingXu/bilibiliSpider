@@ -57,7 +57,9 @@ def main():
   keys: Set[str] = _s3.get_all_objects_key()
   _s3.download_objects(temp_file_dir, keys)
   for _dir in os.listdir(temp_file_dir):
-    _dir = temp_file_dir + _dir + '/'
+    _dir = temp_file_dir + _dir
+    if os.path.isfile(_dir):
+      continue
     dir_keys: Set[str] = gen_objectKeys_from_dir(_dir)
     log.info('Analyze dir: %s' % _dir)
     try:

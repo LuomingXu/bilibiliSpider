@@ -1,5 +1,4 @@
 drop table if exists av_info;
-drop table if exists av_stat;
 create table av_info
 (
     aid                   bigint not null primary key,
@@ -39,9 +38,10 @@ create table av_info
     last_update_time      datetime,
     create_time           datetime default current_timestamp
 );
+drop table if exists av_stat;
 create table av_stat
 (
-    id bigint not null primary key auto_increment,
+    id           bigint   not null primary key auto_increment,
     aid          bigint   not null,
     create_time  datetime not null comment '记录这条数据的时间',
     view         int,
@@ -50,6 +50,7 @@ create table av_stat
     favorite     int,
     coin         int,
     share        int,
+    `rank`       tinyint comment '自己根据当前的顺序计算出来的顺序',
     now_rank     tinyint,
     his_rank     tinyint,
     `like`       int,
@@ -57,6 +58,7 @@ create table av_stat
     online_count int comment '当前观看人数'
 );
 create index avStat_aid on av_stat (aid);
+drop table if exists av_cids;
 create table av_cids
 (
     cid       bigint not null primary key,

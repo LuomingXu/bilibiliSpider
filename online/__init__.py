@@ -47,9 +47,9 @@ def processing_data(j: str, get_data_time: datetime):
   obj: AV = selfusepy.parse_json(j, AV())
   log.info("[Saving] top avs data: %s" % get_data_time.isoformat())
   session = DBSession()
-  for item in obj.onlineList:
+  for i, item in enumerate(obj.onlineList):
     avInfoDO = AVInfoDO(item)
-    avStatDO = AVStatDO(item, get_data_time)
+    avStatDO = AVStatDO(item, i + 1, get_data_time)
 
     exist: AVInfoDO = session.query(AVInfoDO).filter(AVInfoDO.aid == avInfoDO.aid).first()
 

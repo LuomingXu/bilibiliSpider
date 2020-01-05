@@ -1,5 +1,4 @@
 drop table if exists cid_danmaku;
-drop table if exists danmaku;
 create table cid_danmaku
 (
     cid        bigint not null,
@@ -7,6 +6,7 @@ create table cid_danmaku
 ) comment 'av与弹幕关联表';
 create index cidDanmaku_cid on cid_danmaku (cid);
 create index cidDanmaku_danmakuId on cid_danmaku (danmaku_id);
+drop table if exists danmaku;
 create table danmaku
 (
     id            bigint not null primary key comment 'B站数据库id',
