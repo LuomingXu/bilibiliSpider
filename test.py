@@ -61,7 +61,21 @@ def func(cid: int):
 
 import local_processing
 if __name__ == '__main__':
-  local_processing.main()
+  f = open('data-temp/2020-01-06_21-44-53/danmaku/75958759.json', 'r', encoding = 'utf-8')
+  s = f.read()
+  from danmaku.Entity import AvDanmakuCid
+  import selfusepy
+  from typing import List, MutableMapping
+  l: List[AvDanmakuCid] = selfusepy.parse_json_array(s, AvDanmakuCid())
+  # sql: str = '\n'.join(
+  #   'update av_cids set page = %s, page_name = %s where cid = %s;' % (item.page, item.pagename, item.cid) for item in l)
+  # print(sql)
+  _map: MutableMapping[int, AvDanmakuCid] = {}
+  for item in l:
+    _map[item.cid] = item
+
+  print(_map)
+  exit(0)
 # t = time.time()
 # print(int(round(time.time()*1000)))
 # time.sleep(0.1)

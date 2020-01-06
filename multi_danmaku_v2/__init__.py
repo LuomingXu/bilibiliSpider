@@ -11,59 +11,36 @@ from multiprocessing.pool import ApplyResult
 from queue import Queue
 from typing import List, MutableMapping, Set, AbstractSet
 
+import selfusepy
 from bs4 import BeautifulSoup
 from sqlalchemy.engine.result import ResultProxy
 
 import online
 from config import DBSession, engine, log, red
 from danmaku.DO import DanmakuDO, DanmakuRealationDO, AVCidsDO
-from danmaku.Entity import CustomTag
+from danmaku.Entity import CustomTag, AvDanmakuCid
 from local_processing.Entity import CustomFile, FileType
 
 
-def remove_data(_map: MutableMapping[str, CustomFile]):
-  """
-  剔除已经存了大于3000条弹幕的cid
-  """
-  conn = engine.connect()
-  cid_key: MutableMapping[int, str] = {}
-
-  for file_name, file in _map.items():
-    if file.file_type is FileType.Danmaku:
-      l: List = file_name.split('-')
-      cid_key[int(l[1])] = file_name
-
-  sql: str = 'select danmaku_count, cid from av_cids where cid in (\'\',%s)' % ','.join(
-    '%s' % item for item in cid_key.keys())
-  res: ResultProxy = conn.execute(sql)
-  conn.close()
-  cid_count: MutableMapping[int, int] = {}
-  for item in res.fetchall():
-    cid_count[int(item[1])] = int(item[0])
-
-  for cid, count in cid_count.items():
-    if count >= 3000:
-      _map.pop(cid_key[cid], None)
-
-
-def analyze_danmaku(q: Queue, _map: MutableMapping[str, CustomFile]) -> (List[CustomTag], MutableMapping[int, int]):
+def analyze_danmaku(q: Queue, _map: MutableMapping[str, CustomFile]) -> \
+    (List[CustomTag], MutableMapping[int, int], MutableMapping[int, AvDanmakuCid]):
   danmakuList: List[CustomTag] = []
   cid_aid: MutableMapping[int, int] = {}
+  cid_info: MutableMapping[int, AvDanmakuCid] = {}
   print(multiprocessing.current_process().name, 'analyze danmakus')
   try:
     for file_name, file in _map.items():
       if file.file_type is FileType.Online:
-        online.processing_data(file.content,
-                               datetime.fromtimestamp(int(file_name) / 1_000_000_000, timezone(timedelta(hours = 8))))
-      else:
+        online.processing_data(file.content, file.create_time)
+      elif file.file_type is FileType.AvCids:
+        l: List[AvDanmakuCid] = selfusepy.parse_json_array(file.content, AvDanmakuCid())
+        for item in l:
+          cid_info[item.cid] = item
+      elif file.file_type is FileType.Danmaku:
         soup: BeautifulSoup = BeautifulSoup(markup = file.content, features = 'lxml')
-        l: List = file_name.split('-')
-        aid: int = int(l[0])
-        cid: int = int(l[1])
-        cid_aid[cid] = aid
+        cid_aid[file.cid] = file.aid
         for item in soup.find_all(name = 'd'):
-          danmakuList.append(CustomTag(content = item.text, tag_content = item['p'], aid = aid, cid = cid))
-
+          danmakuList.append(CustomTag(content = item.text, tag_content = item['p'], aid = file.aid, cid = file.cid))
   except BaseException:  # save exception to queue waiting for main thread process
     name = multiprocessing.current_process().name
     _map: MutableMapping[str, str] = {name: traceback.format_exc()}
@@ -72,17 +49,16 @@ def analyze_danmaku(q: Queue, _map: MutableMapping[str, CustomFile]) -> (List[Cu
   else:
     print('danmakuList len: %s, cid_aid len: %s' % (danmakuList.__len__(), cid_aid.__len__()))
 
-  return danmakuList, cid_aid
+  return danmakuList, cid_aid, cid_info
 
 
-async def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
+async def save_cid_aid_relation(cid_aid: MutableMapping[int, int], cid_info: MutableMapping[int, AvDanmakuCid]):
   """
   保存av与cid的关系
   """
   if cid_aid.keys().__len__() < 1:
     return
   objs: List[AVCidsDO] = []
-  session = DBSession()
 
   sql: str = 'select cid from av_cids where cid in (%s)' % ','.join('%s' % item for item in cid_aid.keys())
 
@@ -96,6 +72,7 @@ async def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
 
   print('exist cids: ', exist_cids)
   if not exist_cids.__len__() == cid_aid.__len__():
+    session = DBSession()
     for cid, aid in cid_aid.items():
       if exist_cids.__contains__(cid):
         continue
@@ -103,8 +80,15 @@ async def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
       obj.cid = cid
       obj.aid = aid
       objs.append(obj)
+    for cid in exist_cids:
+      cid_info.pop(cid, None)
 
     try:
+      if cid_info.values().__len__() > 0:
+        sql_update: str = ''.join(
+          'update av_cids set page = %s, page_name = %s where cid = %s;' % (item.page, item.pagename, item.cid)
+          for item in cid_info.values())
+        await execute_sql(sql_update)
       session.bulk_save_objects(objs)
       session.commit()
     except BaseException as e:
@@ -302,7 +286,7 @@ def main(_map: MutableMapping[str, CustomFile]):
     tasks: list = list()
     for item in res:
       value = item.get()
-      tasks.append(save_cid_aid_relation(value[1]))
+      tasks.append(save_cid_aid_relation(value[1], value[2]))
     loop.run_until_complete(asyncio.wait(tasks))
     loop.close()
     log.info('[Done] av-cid relation')

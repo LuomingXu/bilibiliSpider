@@ -28,20 +28,26 @@ def set_req_delta(hour: int) -> int:
 
 
 if __name__ == '__main__':
-  delta = set_req_delta(datetime.now(timezone(timedelta(hours = 8))).hour)
-  last_request_time = red.get('last_request_time')
-  if last_request_time:
-    last_request_time = int(last_request_time)
-  else:
-    last_request_time = 0
-
   try:
-    while True:
-      if time.time_ns() - last_request_time >= delta:
-        if platform.system() != 'Windows':
-          """
-          在性能不足的服务器上进行爬虫的工作, 保存获取的数据到cos
-          """
+    if platform.system() == 'Windows':
+      """
+      在本机上进行数据的处理, 充分利用3700x😁
+      """
+      local_processing.main()
+      exit(0)
+    else:
+      """
+      在性能不足的服务器上进行爬虫的工作, 保存获取的数据到cos
+      """
+      delta = set_req_delta(datetime.now(timezone(timedelta(hours = 8))).hour)
+      last_request_time = red.get('last_request_time')
+      if last_request_time:
+        last_request_time = int(last_request_time)
+      else:
+        last_request_time = 0
+
+      while True:
+        if time.time_ns() - last_request_time >= delta:
           log.info(
             '[Spider start] last request time: %s' % datetime.fromtimestamp(int(last_request_time) / 1_000_000_000,
                                                                             timezone(timedelta(hours = 8))))
@@ -70,13 +76,7 @@ if __name__ == '__main__':
 
           log.info('[Spider end]')
         else:
-          """
-          在本机上进行数据的处理, 充分利用3700x😁
-          """
-          local_processing.main()
-          exit(0)
-      else:
-        time.sleep(1)
+          time.sleep(1)
   except BaseException as e:
     """
     异常报告    

@@ -1,6 +1,7 @@
 import os
 import shutil
 from datetime import datetime, timezone, timedelta
+from typing import List
 from typing import MutableMapping, Set
 
 import _s3
@@ -18,19 +19,27 @@ def all_files(path: str, _map: MutableMapping[str, CustomFile] = None) -> Mutabl
     if os.path.isdir(current_path):
       all_files(current_path, _map)
     else:
-      item = item.split('.')[0]
+      l: List[str] = item.split('.')
+      item = l[0]
+      extension = l[1]
       try:
-        if item.__len__() > 19:
+        if extension.__eq__('xml'):
           arr = item.split('-')
           _map[item] = CustomFile(item, open(current_path, 'r', encoding = 'utf-8').read(),
                                   FileType.Danmaku,
-                                  datetime.fromtimestamp(int(arr[2]) / 1_000_000_000, timezone(timedelta(hours = 8))),
-                                  aid = int(arr[0]), cid = int(arr[2]))
-        else:
-          _map[item] = CustomFile(item, open(current_path, 'r', encoding = 'utf-8').read(),
-                                  FileType.Online,
-                                  datetime.fromtimestamp(int(item) / 1_000_000_000, timezone(timedelta(hours = 8))))
-
+                                  create_time = datetime.fromtimestamp(int(arr[2]) / 1_000_000_000,
+                                                                       timezone(timedelta(hours = 8))),
+                                  aid = int(arr[0]), cid = int(arr[1]))
+        elif extension.__eq__('json'):
+          if path.__contains__('online'):
+            _map[item] = CustomFile(item, open(current_path, 'r', encoding = 'utf-8').read(),
+                                    FileType.Online,
+                                    create_time = datetime.fromtimestamp(int(item) / 1_000_000_000,
+                                                                         timezone(timedelta(hours = 8))))
+          elif path.__contains__('danmaku'):
+            _map[item] = CustomFile(item, open(current_path, 'r', encoding = 'utf-8').read(),
+                                    FileType.AvCids,
+                                    aid = int(item))
       except BaseException:
         pass  # 有一个占位文件, package-info.py会引发int()转化错误
 
