@@ -64,7 +64,7 @@ def analyze_danmaku(q: Queue, _map: MutableMapping[str, CustomFile]) -> (List[Cu
         for item in soup.find_all(name = 'd'):
           danmakuList.append(CustomTag(content = item.text, tag_content = item['p'], aid = aid, cid = cid))
 
-  except Exception:  # save exception to queue waiting for main thread process
+  except BaseException:  # save exception to queue waiting for main thread process
     name = multiprocessing.current_process().name
     _map: MutableMapping[str, str] = {name: traceback.format_exc()}
     q.put(_map)
@@ -107,7 +107,7 @@ async def save_cid_aid_relation(cid_aid: MutableMapping[int, int]):
     try:
       session.bulk_save_objects(objs)
       session.commit()
-    except Exception as e:
+    except BaseException as e:
       session.rollback()
       raise e
     else:
@@ -158,7 +158,7 @@ def deconstruct_danmaku(danmakuList: List[CustomTag], cid_aid: MutableMapping[in
   for cid, value in cid_danmakuIdSet.items():
     try:
       red.lpush('program-temp-%s' % cid, *value)
-    except Exception:
+    except BaseException:
       traceback.print_exc()
       print('[ERROR] redis. program temp. cid: %s' % cid)
   print('[DONE] save temp danmaku ids to redis')
@@ -185,7 +185,7 @@ def save_danmaku_to_db(q: Queue, danmakuMap: MutableMapping[int, DanmakuDO],
     if relationMap.values():
       session.bulk_save_objects(relationMap.values())
     session.commit()
-  except Exception:
+  except BaseException:
     session.rollback()
     name = multiprocessing.current_process().name
     _map: MutableMapping[str, str] = {name: traceback.format_exc()}
@@ -196,7 +196,7 @@ def save_danmaku_to_db(q: Queue, danmakuMap: MutableMapping[int, DanmakuDO],
     for cid, value in cid_danmakuIdSet.items():
       try:
         red.sadd(cid, *value)
-      except Exception:
+      except BaseException:
         traceback.print_exc()
         print('[ERROR] redis. cid: %s' % cid)
     print('[DONE] save danmaku ids to redis')
@@ -259,7 +259,7 @@ async def execute_sql(sql: str) -> ResultProxy:
   conn = engine.connect()
   try:
     return conn.execute(sql)
-  except Exception as e:
+  except BaseException as e:
     raise e
   finally:
     conn.close()
@@ -333,5 +333,5 @@ def main(_map: MutableMapping[str, CustomFile]):
     log.info('[Delete] redis temp')
     log.info('[Done] save danmaku to DB')
     log.info('[DONE] analyze spiders\' data')
-  except Exception as e:
+  except BaseException as e:
     raise e

@@ -62,7 +62,7 @@ async def query_all_cid_of_av(avInfo: AVInfoDO):
         session.add(AVCidsDO(avInfo.aid, item[1]))
     session.commit()
     await filter_cid_which_isexist(avInfo.aid, map)
-  except Exception as e:
+  except BaseException as e:
     log.error('aid: %s' % avInfo.aid)
     raise e
   finally:
@@ -110,7 +110,7 @@ async def query_all_danmaku_of_cid(cid: int):
       return
 
     NEED_SAVE_DANMAKUs[cid] = soup.find_all(name = 'd')
-  except Exception as e:
+  except BaseException as e:
     log.error('cid: %s' % cid)
     raise e
 
@@ -172,7 +172,7 @@ def destruct_danmaku(cid: int, danmakus: List[CustomTag]):
     session.bulk_save_objects(danmakuMap.values() if danmakuMap.values().__len__() > 0 else None)
     session.bulk_save_objects(relationMap.values() if relationMap.values().__len__() > 0 else None)
     session.commit()
-  except Exception as e:
+  except BaseException as e:
     session.rollback()
     print(e)
     print('cid: %s, has error. ' % cid)
@@ -214,7 +214,7 @@ async def execute_sql(sql: str) -> ResultProxy:
   conn = engine.connect()
   try:
     return conn.execute(sql)
-  except Exception as e:
+  except BaseException as e:
     raise e
   finally:
     conn.close()

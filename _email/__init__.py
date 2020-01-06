@@ -35,7 +35,7 @@ def send(to: str, e_str: str):
     server.set_debuglevel(1)
     server.login(user = email_from_addr, password = email_password)
     server.send_message(msg)
-  except Exception as e:
+  except BaseException as e:
     log.exception(e)
     log.error('[eMail] Send failed')
   finally:

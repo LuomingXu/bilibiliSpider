@@ -31,7 +31,7 @@ def all_files(path: str, _map: MutableMapping[str, CustomFile] = None) -> Mutabl
                                   FileType.Online,
                                   datetime.fromtimestamp(int(item) / 1_000_000_000, timezone(timedelta(hours = 8))))
 
-      except Exception:
+      except BaseException:
         pass  # 有一个占位文件, package-info.py会引发int()转化错误
 
   return _map
@@ -66,7 +66,7 @@ def main():
       _map = all_files(_dir)
       log.info('Waiting to process, files len: %s' % _map.__len__())
       multi_danmaku_v2.main(_map)  # analyze
-    except Exception as e:
+    except BaseException as e:
       log.error('dir: %s occurs error' % _dir)
       raise e
     else:

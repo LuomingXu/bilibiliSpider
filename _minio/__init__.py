@@ -28,7 +28,7 @@ def put(files: MutableMapping[str, str]):
     try:
       minioClient.fput_object(bucket_name = minio_bucket, object_name = file_name,
                               file_path = file_path)
-    except Exception as e:
+    except BaseException as e:
       log.exception(e)
     else:
       log.info('[SAVED] %s' % file_path)

@@ -66,7 +66,7 @@ def processing_data(j: str, get_data_time: datetime):
         log.info('[UPDATE] av statistics, aid: %s' % avInfoDO.aid)
 
       session.commit()
-    except Exception as e:
+    except BaseException as e:
       session.rollback()
       raise e
     else:

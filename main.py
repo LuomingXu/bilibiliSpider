@@ -77,7 +77,7 @@ if __name__ == '__main__':
           exit(0)
       else:
         time.sleep(1)
-  except Exception as e:
+  except BaseException as e:
     """
     异常报告    
     """

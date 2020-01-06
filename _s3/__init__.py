@@ -68,7 +68,7 @@ def put(files: MutableMapping[str, str]):
   for file_name, file_path in files.items():
     try:
       tx_client.upload_file(Filename = file_path, Bucket = s3_tx_bucket, Key = file_name)
-    except Exception as e:
+    except BaseException as e:
       raise e
     else:
       log.info('[PUT] %s' % file_name)

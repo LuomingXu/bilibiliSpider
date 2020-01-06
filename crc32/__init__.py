@@ -13,7 +13,7 @@ def get_value(hash: str) -> (int, str):
   try:
     res: ResultProxy = conn.execute(sql)
     return res.rowcount, ','.join('%s' % item[0] for item in res.fetchall())
-  except Exception as e:
+  except BaseException as e:
     log.error('sql: %s' % sql)
     log.exception(e)
   finally:
@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
       try:
         conn.execute(sql)
-      except Exception as e:
+      except BaseException as e:
         log.exception(e)
         exit(0)
 

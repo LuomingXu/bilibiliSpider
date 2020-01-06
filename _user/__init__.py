@@ -37,7 +37,7 @@ def __main__(mids: Set[int]):
               isUpdated = True
               log.info('[UPDATE] mid: %s, key: %s, new: %s, old: %s' % (i, item[0], newValue, item[1]))
               setattr(dbData, item[0], newValue)
-          except Exception as e:
+          except BaseException as e:
             raise e
         if not isUpdated:
           log.info('[EQUAL] mid: %s' % i)
@@ -46,7 +46,7 @@ def __main__(mids: Set[int]):
         session.add(UserProfileDO(resData))
 
       session.commit()
-    except Exception as e:
+    except BaseException as e:
       log.error('mid: %s, data: %s' % (i, res.data))
       raise e
     finally:

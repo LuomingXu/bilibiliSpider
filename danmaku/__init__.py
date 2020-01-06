@@ -22,7 +22,7 @@ def is_req_danmaku(aid: int, cid_len: int) -> (bool, int):
     if res:  # exist
       try:
         req = selfusepy.parse_json(str(res, encoding = 'utf-8'), ReqTimes())
-      except Exception:  # 兼容v0.0.5的req-times, 可于过段时间后删去
+      except BaseException:  # 兼容v0.0.5的req-times, 可于过段时间后删去
         i = int(res)
         req.cid_len = cid_len
         req.req_times = i
@@ -114,7 +114,7 @@ def getting_data(aids: List[int]) -> MutableMapping[str, str]:
         time.sleep(2)
 
       log.info('[Done] i: %s, aid: %s' % (i, aid))
-    except Exception as e:
+    except BaseException as e:
       log.exception(e)
       log.error(resAllCids.data)
       log.error(aid)
