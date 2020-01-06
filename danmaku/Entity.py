@@ -25,3 +25,10 @@ class CustomTag(object):
     self.tag_content: str = tag_content
     self.aid: int = aid
     self.cid: int = cid
+
+
+@override_str
+class ReqTimes(BaseJsonObject):
+  def __init__(self, _len: int = 0, times: int = 0):
+    self.cid_len: int = _len
+    self.req_times: int = times

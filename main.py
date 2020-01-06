@@ -15,7 +15,7 @@ import danmaku
 import local_processing
 import online
 from config import log, regular_spider_delta, quick_spider_delta, night_spider_delta, \
-  regular_set, quick_set, night_set, email_to_addr
+  regular_set, quick_set, night_set, email_to_addr, red
 
 
 def set_req_delta(hour: int) -> int:
@@ -28,8 +28,12 @@ def set_req_delta(hour: int) -> int:
 
 
 if __name__ == '__main__':
-  delta = regular_spider_delta  # request delta time 30min
-  last_request_time = 0
+  delta = set_req_delta(datetime.now(timezone(timedelta(hours = 8))).hour)
+  last_request_time = red.get('last_request_time')
+  if last_request_time:
+    last_request_time = int(last_request_time)
+  else:
+    last_request_time = 0
 
   try:
     while True:
@@ -38,16 +42,20 @@ if __name__ == '__main__':
           """
           在性能不足的服务器上进行爬虫的工作, 保存获取的数据到cos
           """
-          log.info('[Spider start]')
+          log.info(
+            '[Spider start] last request time: %s' % datetime.fromtimestamp(int(last_request_time) / 1_000_000_000),
+            timezone(timedelta(hours = 8)))
 
           last_request_time = time.time_ns()
+          red.set('last_request_time', last_request_time)
+
           now = datetime.now(timezone(timedelta(hours = 8)))
           config.date = now.strftime('%Y-%m-%d_%H-%M-%S')
           delta = set_req_delta(now.hour)  # set req delta time by current hour
 
           dirs: list = ['data-temp/%s/danmaku' % config.date, 'data-temp/%s/online' % config.date]
-          for dir in dirs:
-            os.makedirs(dir, exist_ok = True)  # create temp files' dir
+          for _dir in dirs:
+            os.makedirs(_dir, exist_ok = True)  # create temp files' dir
 
           waiting_upload_files: MutableMapping[str, str] = {}
 

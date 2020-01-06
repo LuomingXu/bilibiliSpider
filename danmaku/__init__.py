@@ -9,27 +9,73 @@ import _file
 import config
 from config import log, chromeUserAgent, red
 from danmaku.DO import DanmakuDO, DanmakuRealationDO, AVCidsDO
-from danmaku.Entity import AvDanmakuCid
+from danmaku.Entity import AvDanmakuCid, ReqTimes
 
 
-def is_req_danmaku(cid_len: int, aid: int) -> bool:
-  if cid_len <= 3:
-    return False
+def is_req_danmaku(aid: int, cid_len: int) -> (bool, int):
+  if cid_len == 1:
+    return True, -1
   else:
-    key = str(aid.__str__() + '-req-times')
+    key = '%s-req-times' % aid
     res = red.get(key)
-    if res:
-      res = int(res)
+    req: ReqTimes = ReqTimes()
+    if res:  # exist
+      try:
+        req = selfusepy.parse_json(str(res, encoding = 'utf-8'), ReqTimes())
+      except Exception:  # 兼容v0.0.5的req-times, 可于过段时间后删去
+        i = int(res)
+        req.cid_len = cid_len
+        req.req_times = i
+    else:  # not exist, init
+      red.set(key, json.dumps(ReqTimes(cid_len, 1).__dict__, default = int))
+      expire_policy(key, cid_len)
+      return True, 1
+
+    if is_out_of_max_req_times(cid_len, req.req_times):
+      return False, req.req_times
     else:
-      red.set(key, 1)
-      res = 1
-    if (cid_len < 10 and res > 6) or (cid_len >= 10 and res > 3):
-      log.info('aid: %s, req times: %s. %s' % (aid, res, True))
+      req.req_times += 1
+      red.set(key, json.dumps(req.__dict__, default = int))
+      expire_policy(key, cid_len)
+      return True, req.req_times
+
+
+def expire_policy(key: str, cid_len: int):
+  if cid_len <= 10:
+    red.expire(key, 2 * 3600 * 24)  # 2 day
+    return
+  if cid_len <= 26:
+    red.expire(key, 5 * 3600 * 24)
+    return
+  if cid_len <= 100:
+    red.expire(key, 10 * 3600 * 24)
+    return
+  red.expire(key, 18 * 3600 * 24)
+  return
+
+
+def is_out_of_max_req_times(cid_len: int, times: int):
+  if cid_len <= 10:
+    if times >= 8:
       return True
     else:
-      red.incr(key, 1)
-      log.info('aid: %s, req times: %s. %s' % (aid, res, False))
       return False
+  if cid_len <= 26:
+    if times >= 6:
+      return True
+    else:
+      return False
+  if cid_len <= 100:
+    if times >= 2:
+      return True
+    else:
+      return False
+  if cid_len > 100:
+    if times >= 1:
+      return True
+    else:
+      return False
+  log.error('Here can not be reached')
 
 
 def getting_data(aids: List[int]) -> MutableMapping[str, str]:
@@ -37,15 +83,20 @@ def getting_data(aids: List[int]) -> MutableMapping[str, str]:
   file_map: MutableMapping[str, str] = {}
   for i, aid in enumerate(aids):
     resAllCids: HTTPResponse = selfusepy.get('https://www.bilibili.com/widget/getPageList?aid=' + str(aid))
-    danmakuCids: List[AvDanmakuCid] = list()
-    try:
-      l = json.loads(resAllCids.data)
-      log.info('[Start] i: %s, aid: %s, cids length: %s' % (i, aid, l.__len__()))
-      if isinstance(json.loads(resAllCids.data), list):
-        for item in l:
-          danmakuCids.append(selfusepy.parse_json(json.dumps(item), AvDanmakuCid()))
 
-      if is_req_danmaku(danmakuCids.__len__(), aid):  # 如果有大量的cid, 就只进行有限获取
+    try:
+      data: str = str(resAllCids.data, encoding = 'utf-8')
+      danmakuCids: List[AvDanmakuCid] = selfusepy.parse_json_array(data, AvDanmakuCid())
+      log.info('[Start] i: %s, aid: %s, cids length: %s' % (i, aid, danmakuCids.__len__()))
+
+      json_file_name = '%s/danmaku/%s.json' % (config.date, aid)
+      json_file_path = 'data-temp/%s' % json_file_name
+      file_map[json_file_name] = json_file_path
+      _file.save(data, json_file_path)
+
+      go_on, times = is_req_danmaku(aid, danmakuCids.__len__())
+      log.info('len: %s, req times:%s. go_on: %s' % (danmakuCids.__len__(), times, go_on))
+      if not go_on:  # 如果有大量的cid, 就只进行有限获取
         log.info('[Continue] do not get cids. aid: %s' % aid)
         continue
 
@@ -55,10 +106,10 @@ def getting_data(aids: List[int]) -> MutableMapping[str, str]:
         res: HTTPResponse = selfusepy.get('https://api.bilibili.com/x/v1/dm/list.so?oid=' + str(cidE.cid),
                                           head = chromeUserAgent)
 
-        file_name = '%s/danmaku/%s-%s-%s.xml' % (config.date, aid, cidE.cid, time.time_ns())
-        file_path = 'data-temp/%s' % file_name
-        file_map[file_name] = file_path
-        _file.save(str(res.data, encoding = 'utf-8').replace('\\n', ''), file_path)
+        xlm_file_name = '%s/danmaku/%s-%s-%s.xml' % (config.date, aid, cidE.cid, time.time_ns())
+        xlm_file_path = 'data-temp/%s' % xlm_file_name
+        file_map[xlm_file_name] = xlm_file_path
+        _file.save(str(res.data, encoding = 'utf-8').replace('\\n', ''), xlm_file_path)
 
         time.sleep(2)
 
