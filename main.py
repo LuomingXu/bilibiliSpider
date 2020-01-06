@@ -43,8 +43,8 @@ if __name__ == '__main__':
           在性能不足的服务器上进行爬虫的工作, 保存获取的数据到cos
           """
           log.info(
-            '[Spider start] last request time: %s' % datetime.fromtimestamp(int(last_request_time) / 1_000_000_000),
-            timezone(timedelta(hours = 8)))
+            '[Spider start] last request time: %s' % datetime.fromtimestamp(int(last_request_time) / 1_000_000_000,
+                                                                            timezone(timedelta(hours = 8))))
 
           last_request_time = time.time_ns()
           red.set('last_request_time', last_request_time)
