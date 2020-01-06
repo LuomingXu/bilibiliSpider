@@ -89,16 +89,16 @@ def getting_data(aids: List[int]) -> MutableMapping[str, str]:
       danmakuCids: List[AvDanmakuCid] = selfusepy.parse_json_array(data, AvDanmakuCid())
       log.info('[Start] i: %s, aid: %s, cids length: %s' % (i, aid, danmakuCids.__len__()))
 
-      json_file_name = '%s/danmaku/%s.json' % (config.date, aid)
-      json_file_path = 'data-temp/%s' % json_file_name
-      file_map[json_file_name] = json_file_path
-      _file.save(data, json_file_path)
-
       go_on, times = is_req_danmaku(aid, danmakuCids.__len__())
       log.info('len: %s, req times:%s. go_on: %s' % (danmakuCids.__len__(), times, go_on))
       if not go_on:  # 如果有大量的cid, 就只进行有限获取
         log.info('[Continue] do not get cids. aid: %s' % aid)
         continue
+
+      json_file_name = '%s/danmaku/%s.json' % (config.date, aid)
+      json_file_path = 'data-temp/%s' % json_file_name
+      file_map[json_file_name] = json_file_path
+      _file.save(data, json_file_path)
 
       time.sleep(2)
       for j, cidE in enumerate(danmakuCids):
