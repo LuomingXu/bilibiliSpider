@@ -1,7 +1,73 @@
+from datetime import datetime
 from typing import List, Set
 
+from botocore.response import StreamingBody
 from selfusepy.jsonparse import BaseJsonObject
 from selfusepy.utils import override_str
+
+
+@override_str
+class ResponseMetadata(BaseJsonObject):
+
+  def __init__(self):
+    self.RequestId: str = ''
+    self.HostId: str = ''
+    self.HTTPStatusCode: int = -1
+    self.HTTPHeaders: dict = {}
+    self.RetryAttempts: int = -1
+
+
+@override_str
+class Object(BaseJsonObject):
+  """
+  s3 api get_object() result class
+  """
+
+  def __init__(self):
+    self.ResponseMetadata: ResponseMetadata = ResponseMetadata()
+    self.Body: StreamingBody
+    self.DeleteMarker: bool = False
+    self.AcceptRanges: str = ''
+    self.Expiration: str = ''
+    self.Restore: str = ''
+    self.LastModified: datetime
+    self.ContentLength: int = -1
+    self.ETag: str = ''
+    self.MissingMeta: int = -1
+    self.VersionId: str = ''
+    self.CacheControl: str = ''
+    self.ContentDisposition: str = ''
+    self.ContentEncoding: str = ''
+    self.ContentLanguage: str = ''
+    self.ContentRange: str = ''
+    self.ContentType: str = ''
+    self.Expires: datetime
+    self.WebsiteRedirectLocation: str = ''
+    self.ServerSideEncryption: str = ''
+    """
+    AES256 | aws:kms
+    """
+    self.Metadata: dict = {}
+    self.SSECustomerAlgorithm: str = ''
+    self.SSECustomerKeyMD5: str = ''
+    self.SSEKMSKeyId: str = ''
+    self.StorageClass: str = ''
+    """
+    STANDARD | REDUCED_REDUNDANCY | STANDARD_IA | ONEZONE_IA | INTELLIGENT_TIERING | GLACIER | DEEP_ARCHIVE 
+    """
+    self.RequestCharged: str = ''
+    self.ReplicationStatus: str = ''
+    """
+    COMPLETE | PENDING | FAILED | REPLICA
+    """
+    self.PartsCount: int = -1
+    self.TagCount: int = -1
+    self.ObjectLockMode: str = ''
+    """
+    GOVERNANCE | COMPLIANCE
+    """
+    self.ObjectLockRetainUntilDate: datetime
+    self.ObjectLockLegalHoldStatus: str = ''
 
 
 @override_str
@@ -51,7 +117,7 @@ class Objects_v2(BaseJsonObject):
 @override_str
 class Objects(BaseJsonObject):
   """
-  s3 api list_objects_v2() result class
+  s3 api list_objects() result class
   """
 
   def __init__(self):

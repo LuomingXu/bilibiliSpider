@@ -5,11 +5,12 @@ from typing import Set, MutableMapping
 import boto3
 import selfusepy
 
-from _s3.Entity import Objects_v2, Objects, DeleteObjects
+from _s3.Entity import Objects_v2, Objects, DeleteObjects, Object
 from config import s3_tx_bucket, s3_tx_endpoint, s3_tx_access_key, s3_tx_secret_key, log
 
 tx_session = boto3.session.Session(aws_access_key_id = s3_tx_access_key, aws_secret_access_key = s3_tx_secret_key)
 tx_client = tx_session.client('s3', endpoint_url = s3_tx_endpoint)
+tx_resource = tx_session.resource('s3', endpoint_url = s3_tx_endpoint)
 
 
 def get_all_objects_key_v2() -> Set[str]:
@@ -72,3 +73,15 @@ def put(files: MutableMapping[str, str]):
       raise e
     else:
       log.info('[PUT] %s' % file_name)
+
+
+def update_object_metadata(key: str, metadata: dict):
+  obj = tx_resource.Object(s3_tx_bucket, key)
+  obj.metadata.update(metadata)
+  obj.copy_from(CopySource = {'Bucket': s3_tx_bucket, 'Key': key}, Metadata = obj.metadata,
+                MetadataDirective = 'REPLACE')
+
+
+def get_object(key: str):
+  d: dict = tx_client.get_object(Bucket = s3_tx_bucket, Key = key)
+  return selfusepy.dict_2_obj(d, Object())
