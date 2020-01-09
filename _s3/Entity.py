@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Set
 
 from botocore.response import StreamingBody
-from selfusepy.jsonparse import BaseJsonObject
+from selfusepy.jsonparse import BaseJsonObject, JsonField, DeserializeConfig
 from selfusepy.utils import override_str
 
 
@@ -18,6 +18,7 @@ class ResponseMetadata(BaseJsonObject):
 
 
 @override_str
+@DeserializeConfig({'Body': JsonField(ignore = True), 'ResponseMetadata': JsonField(ignore = True)})
 class Object(BaseJsonObject):
   """
   s3 api get_object() result class

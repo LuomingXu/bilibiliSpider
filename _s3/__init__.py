@@ -82,6 +82,8 @@ def update_object_metadata(key: str, metadata: dict):
                 MetadataDirective = 'REPLACE')
 
 
-def get_object(key: str):
+def get_object(key: str) -> Object:
   d: dict = tx_client.get_object(Bucket = s3_tx_bucket, Key = key)
-  return selfusepy.dict_2_obj(d, Object())
+  obj = selfusepy.parse_json(json.dumps(d, default = str), Object())
+  obj.Body = d['Body']
+  return obj
