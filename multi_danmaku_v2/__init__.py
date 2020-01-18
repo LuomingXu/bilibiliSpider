@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 from sqlalchemy.engine.result import ResultProxy
 
 import online
-from config import DBSession, engine, log, red
+from config import DBSession, engine, log, red, cpu_use_number
 from danmaku.DO import DanmakuDO, DanmakuRealationDO, AVCidsDO
 from danmaku.Entity import CustomTag, AvDanmakuCid
 from local_processing.Entity import CustomFile, FileType
@@ -139,13 +139,6 @@ def deconstruct_danmaku(danmakuList: List[CustomTag], cid_aid: MutableMapping[in
   print('[Done] danmaku deconstruct')
   del danmakuList
   gc.collect()
-  for cid, value in cid_danmakuIdSet.items():
-    try:
-      red.lpush('program-temp-%s' % cid, *value)
-    except BaseException:
-      traceback.print_exc()
-      print('[ERROR] redis. program temp. cid: %s' % cid)
-  print('[DONE] save temp danmaku ids to redis')
   return danmakuMap, relationMap, cid_danmakuIdSet
 
 
@@ -154,8 +147,6 @@ def save_danmaku_to_db(q: Queue, danmakuMap: MutableMapping[int, DanmakuDO],
                        cid_danmakuIdSet: MutableMapping[int, Set[int]]):
   session = DBSession()
   try:
-    print('[Former] danmaku len: %s, relation len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
-    remove_program_exist_ids(danmakuMap, relationMap, cid_danmakuIdSet)
     print(
       '[After Removed Program ids] danmaku len: %s, relation len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
     remove_db_exist_ids(danmakuMap, relationMap, cid_danmakuIdSet.keys())
@@ -255,7 +246,6 @@ def main(_map: MutableMapping[str, CustomFile]):
   """
   q = multiprocessing.Manager().Queue()
   log.info('multiprocess tasks')
-  cpu_use_number = int(multiprocessing.cpu_count() / 3 * 2)  # 使用总核心数的2/3
   pool = Pool(processes = cpu_use_number)
   size = int(math.ceil(_map.__len__() / float(cpu_use_number)))
   map_temp: MutableMapping[str, CustomFile] = {}

@@ -60,7 +60,19 @@ def download_objects(dir_to_save_files: str, keys: Set[str]):
 
 
 def delete_objects(keys: Set[str]):
-  j: str = '{"Objects": [%s], "Quiet": true}' % ','.join('{"Key": "%s"}' % item for item in keys)
+  """
+  client.delete_objects() The request contains a list of up to 1000 keys that you want to delete.
+  changed to batch deletion ver
+  """
+  temp: Set[str] = set()
+  for item in keys:
+    temp.add(item)
+    if temp.__len__() % 1000 == 0:
+      j: str = '{"Objects": [%s], "Quiet": true}' % ','.join('{"Key": "%s"}' % item for item in temp)
+      tx_client.delete_objects(Bucket = s3_tx_bucket,
+                               Delete = json.loads(j))
+      temp = set()
+  j: str = '{"Objects": [%s], "Quiet": true}' % ','.join('{"Key": "%s"}' % item for item in temp)
   tx_client.delete_objects(Bucket = s3_tx_bucket,
                            Delete = json.loads(j))
 

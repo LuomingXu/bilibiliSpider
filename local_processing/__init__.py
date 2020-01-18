@@ -1,12 +1,14 @@
+import math
 import os
 import shutil
 from datetime import datetime, timezone, timedelta
+from multiprocessing import Pool
 from typing import List
 from typing import MutableMapping, Set
 
 import _s3
 import multi_danmaku_v2
-from config import log
+from config import log, cpu_use_number
 from local_processing.Entity import CustomFile, FileType
 
 
@@ -61,10 +63,29 @@ def gen_objectKeys_from_dir(_dir: str, keys: Set[str] = None):
   return keys
 
 
+def multi_download(_dir: str, keys: Set[str]):
+  p = Pool(processes = cpu_use_number)
+  size = int(math.ceil(keys.__len__() / float(cpu_use_number)))
+  keys_temp: Set[str] = set()
+  l: List[Set[str]] = list()
+  for i, item in enumerate(keys):
+    keys_temp.add(item)
+    if (i + 1) % size == 0:
+      l.append(keys_temp)
+      p.apply_async(func = _s3.download_objects, args = (_dir, keys_temp,))
+      keys_temp = set()
+  l.append(keys_temp)
+  p.apply_async(func = _s3.download_objects, args = (_dir, keys_temp,))
+  p.close()
+  p.join()
+
+
 def main():
   temp_file_dir = 'data-temp/'
   keys: Set[str] = _s3.get_all_objects_key()
-  _s3.download_objects(temp_file_dir, keys)
+  log.info("[Done] get all object's keys")
+  multi_download(temp_file_dir, keys)
+
   for _dir in os.listdir(temp_file_dir):
     _dir = temp_file_dir + _dir
     if os.path.isfile(_dir):
@@ -79,7 +100,9 @@ def main():
       log.error('dir: %s occurs error' % _dir)
       raise e
     else:
-      shutil.rmtree(_dir, ignore_errors = True)  # 处理完毕, 删除temp文件
-      log.info('Delete temp files done')
+      shutil.move(_dir, 'D:/spider archive')  # 处理完毕, 移动到存档目录
+      log.info('Archive temp files done')
       _s3.delete_objects(dir_keys)
       log.info('Delete objects done')
+      log.info('[Done] analyze dir: %s' % _dir)
+  log.info('ALL DONE')

@@ -41,6 +41,11 @@ deploy:
     variables:
       - $CI_COMMIT_TAG =~ /^v.*$/
   script:
+    - container_id=$(docker ps --no-trunc -f 'name=bilibili' -q)
+    - now=$(date +%Y-%m-%d)
+    - file_name=$container_id"-json.log"
+    - path="/var/lib/docker/containers/${container_id}/${file_name}"
+    - cp -i $(echo $path | sed -e 's/\r//g') ~/$(echo $now | sed -e 's/\r//g').log
     - docker-compose version
     - docker-compose up -d
   tags:
