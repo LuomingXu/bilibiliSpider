@@ -4,3 +4,6 @@
 [submodule "config"]
 	path = config
 	url = git@github.com:LuomingXu/bilibiliSpiderConfig.git
+[submodule "jupyter"]
+	path = jupyter
+	url = git@github.com:LuomingXu/bilibiliJupyter.git
