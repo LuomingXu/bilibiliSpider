@@ -1,7 +1,7 @@
-import os, time, random, multiprocessing
-from multiprocessing import Pool
-from config import log, engine
-from sqlalchemy.engine import ResultProxy
+import multiprocessing
+import time
+
+from config import log
 
 
 def consumer():
@@ -31,10 +31,6 @@ def produce(c):
   c.close()
 
 
-import threading
-import asyncio
-from asyncio import Task
-
 count = 0
 
 
@@ -59,13 +55,44 @@ async def io():
 def func(cid: int):
   print(multiprocessing.current_process().name + str(cid))
 
-import local_processing
+
 if __name__ == '__main__':
+  from config import DBSession, engine
+  from danmaku.DO import AVCidsDO
+  from danmaku.Entity import AvDanmakuCid
+  values: list = list()
+  obj: AvDanmakuCid = AvDanmakuCid()
+  obj.cid = 142953222
+  obj.pagename = '\u3010\u306f\u3058\u3081\u3057\u3083\u3061\u3087\u30fc\u3011Hajime\u793e\u957f \u5982\u679c\u73ed\u91cc\u5168\u90e8\u90fd\u662f\u7a7f\u7740\u6cf3\u88c5\u7684\u5973\u5b69\u5b50\uff0c\u8003\u8bd5\u5206\u6570\u4f1a\u4e0a\u5347\uff1f\u4e0b\u964d\uff1f'
+  obj.page = 1
+  values.append(obj)
+  obj = AvDanmakuCid()
+  obj.cid = 143185245
+  obj.pagename = '286\u6307\u73af\u738b-1B\u7ad9'
+  obj.page = 1
+  values.append(obj)
+
+  session = DBSession()
+
+  try:
+    l: list = list()
+    for item in values:
+      param = {'av_cids_cid': item.cid, 'page': item.page, 'pagename': item.pagename}
+      l.append(param)
+
+    session.bulk_update_mappings(AVCidsDO, l)
+  except BaseException:
+    import traceback
+    traceback.print_exc()
+  else:
+    print('success')
+  exit(0)
   f = open('data-temp/2020-01-06_21-44-53/danmaku/75958759.json', 'r', encoding = 'utf-8')
   s = f.read()
   from danmaku.Entity import AvDanmakuCid
   import selfusepy
   from typing import List, MutableMapping
+
   l: List[AvDanmakuCid] = selfusepy.parse_json_array(s, AvDanmakuCid())
   # sql: str = '\n'.join(
   #   'update av_cids set page = %s, page_name = %s where cid = %s;' % (item.page, item.pagename, item.cid) for item in l)

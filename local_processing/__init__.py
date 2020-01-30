@@ -82,6 +82,7 @@ def multi_download(_dir: str, keys: Set[str]):
 
 def main():
   temp_file_dir = 'data-temp/'
+  log.info("Getting object's keys")
   keys: Set[str] = _s3.get_all_objects_key()
   log.info("[Done] get all object's keys")
   multi_download(temp_file_dir, keys)
@@ -100,9 +101,9 @@ def main():
       log.error('dir: %s occurs error' % _dir)
       raise e
     else:
+      log.info('[Done] analyze dir: %s' % _dir)
       shutil.move(_dir, 'D:/spider archive')  # 处理完毕, 移动到存档目录
       log.info('Archive temp files done')
       _s3.delete_objects(dir_keys)
       log.info('Delete objects done')
-      log.info('[Done] analyze dir: %s' % _dir)
   log.info('ALL DONE')

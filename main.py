@@ -81,19 +81,25 @@ if __name__ == '__main__':
     """
     异常报告    
     """
-    log.exception(e)
-    import traceback, multiprocessing
+    if isinstance(e, SystemExit):
+      """
+      exit() 函数是通过raise SystemExit异常来退出程序, 此Exception不需要捕获
+      """
+      pass
+    else:
+      log.exception(e)
+      import traceback, multiprocessing
 
-    flag = False
-    for item in e.args:
-      if issubclass(type(item), multiprocessing.managers.BaseProxy):
-        flag = True
-        s: str = ''
-        for i in range(item.qsize()):
-          for key, value in item.get().items():
-            s += key + value
-          s += '\n'
-        eprint(s)
-        _email.send(email_to_addr, s)
-    if not flag:
-      _email.send(email_to_addr, traceback.format_exc())
+      flag = False
+      for item in e.args:
+        if issubclass(type(item), multiprocessing.managers.BaseProxy):
+          flag = True
+          s: str = ''
+          for i in range(item.qsize()):
+            for key, value in item.get().items():
+              s += key + value
+            s += '\n'
+          eprint(s)
+          _email.send(email_to_addr, s)
+      if not flag:
+        _email.send(email_to_addr, traceback.format_exc())

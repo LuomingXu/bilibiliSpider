@@ -84,11 +84,11 @@ async def save_cid_aid_relation(cid_aid: MutableMapping[int, int], cid_info: Mut
       cid_info.pop(cid, None)
 
     try:
+
       if cid_info.values().__len__() > 0:
-        sql_update: str = ''.join(
-          'update av_cids set page = %s, page_name = %s where cid = %s;' % (item.page, item.pagename, item.cid)
-          for item in cid_info.values())
-        await execute_sql(sql_update)
+        for item in cid_info.values():
+          await execute_sql(
+            "update av_cids set page = %s, page_name = '%s' where cid = %s;" % (item.page, item.pagename, item.cid))
       session.bulk_save_objects(objs)
       session.commit()
     except BaseException as e:
@@ -147,8 +147,6 @@ def save_danmaku_to_db(q: Queue, danmakuMap: MutableMapping[int, DanmakuDO],
                        cid_danmakuIdSet: MutableMapping[int, Set[int]]):
   session = DBSession()
   try:
-    print(
-      '[After Removed Program ids] danmaku len: %s, relation len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
     remove_db_exist_ids(danmakuMap, relationMap, cid_danmakuIdSet.keys())
     print('[After Removed DB ids] danmaku len: %s, relation len: %s' % (danmakuMap.__len__(), relationMap.__len__()))
 

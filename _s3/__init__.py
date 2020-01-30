@@ -40,6 +40,7 @@ def get_all_objects_key() -> Set[str]:
     if not obj.IsTruncated:
       break
     else:
+      log.info('[s3] Got %s keys' % object_keys.__len__())
       Marker = obj.NextMarker
 
   log.info('[s3] received %s objects' % object_keys.__len__())
