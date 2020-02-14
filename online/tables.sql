@@ -52,7 +52,7 @@ create table av_stat
     share        int,
     `rank`       tinyint comment '自己根据当前的顺序计算出来的顺序',
     now_rank     tinyint,
-    his_rank     tinyint,
+    his_rank     smallint,
     `like`       int,
     dislike      int,
     online_count int comment '当前观看人数'

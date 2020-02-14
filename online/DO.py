@@ -2,7 +2,7 @@ from datetime import datetime, timezone, timedelta
 
 from selfusepy.utils import override_str
 from sqlalchemy import Column, BIGINT, DATETIME, String, INTEGER, PrimaryKeyConstraint
-from sqlalchemy.dialects.mysql import TINYINT
+from sqlalchemy.dialects.mysql import TINYINT, SMALLINT
 from sqlalchemy.ext.declarative import declarative_base
 
 from online.Entity import AV
@@ -115,7 +115,7 @@ class AVStatDO(Base):
   share = Column(INTEGER)
   rank = Column(TINYINT)
   now_rank = Column(TINYINT)
-  his_rank = Column(TINYINT)
+  his_rank = Column(SMALLINT)
   like = Column(INTEGER)
   dislike = Column(INTEGER)
   online_count = Column(INTEGER)
