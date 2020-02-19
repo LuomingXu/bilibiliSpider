@@ -70,7 +70,6 @@ async def save_cid_aid_relation(cid_aid: MutableMapping[int, int], cid_info: Mut
     """
     exist_cids.add(int(item[0]))
 
-  print('exist cids: ', exist_cids)
   if not exist_cids.__len__() == cid_aid.__len__():
     session = DBSession()
     for cid, aid in cid_aid.items():
@@ -96,7 +95,6 @@ async def save_cid_aid_relation(cid_aid: MutableMapping[int, int], cid_info: Mut
       raise e
     else:
       log.info('[Saved] av-cid relation. len: %s' % objs.__len__())
-      print(objs.__str__())
     finally:
       session.close()
   else:

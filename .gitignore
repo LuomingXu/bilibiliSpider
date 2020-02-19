@@ -5,3 +5,7 @@
 *.log
 **/*.json
 **/*.xml
+**/*.danmaku
+**/*.aidcid
+**/*.ciddanmaku
+!/multi_danmaku_v3_Java/pom.xml
