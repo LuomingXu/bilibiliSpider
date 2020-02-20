@@ -41,6 +41,30 @@ public final class Serialize {
      */
     bilibilispider.multiprocess.Serialize.Msg.DanmakuPOrBuilder getDanmakusOrBuilder(
         int index);
+
+    /**
+     * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+     */
+    java.util.List<bilibilispider.multiprocess.Serialize.Msg.DanmakuMap> 
+        getCidDanmakuIdsList();
+    /**
+     * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+     */
+    bilibilispider.multiprocess.Serialize.Msg.DanmakuMap getCidDanmakuIds(int index);
+    /**
+     * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+     */
+    int getCidDanmakuIdsCount();
+    /**
+     * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+     */
+    java.util.List<? extends bilibilispider.multiprocess.Serialize.Msg.DanmakuMapOrBuilder> 
+        getCidDanmakuIdsOrBuilderList();
+    /**
+     * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+     */
+    bilibilispider.multiprocess.Serialize.Msg.DanmakuMapOrBuilder getCidDanmakuIdsOrBuilder(
+        int index);
   }
   /**
    * Protobuf type {@code bilibilispider.multiprocess.Msg}
@@ -56,6 +80,7 @@ public final class Serialize {
     }
     private Msg() {
       danmakus_ = java.util.Collections.emptyList();
+      cidDanmakuIds_ = java.util.Collections.emptyList();
     }
 
     @java.lang.Override
@@ -98,6 +123,15 @@ public final class Serialize {
                   input.readMessage(bilibilispider.multiprocess.Serialize.Msg.DanmakuP.parser(), extensionRegistry));
               break;
             }
+            case 18: {
+              if (!((mutable_bitField0_ & 0x00000002) != 0)) {
+                cidDanmakuIds_ = new java.util.ArrayList<bilibilispider.multiprocess.Serialize.Msg.DanmakuMap>();
+                mutable_bitField0_ |= 0x00000002;
+              }
+              cidDanmakuIds_.add(
+                  input.readMessage(bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.parser(), extensionRegistry));
+              break;
+            }
             default: {
               if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
@@ -116,6 +150,9 @@ public final class Serialize {
         if (((mutable_bitField0_ & 0x00000001) != 0)) {
           danmakus_ = java.util.Collections.unmodifiableList(danmakus_);
         }
+        if (((mutable_bitField0_ & 0x00000002) != 0)) {
+          cidDanmakuIds_ = java.util.Collections.unmodifiableList(cidDanmakuIds_);
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -131,6 +168,688 @@ public final class Serialize {
       return bilibilispider.multiprocess.Serialize.internal_static_bilibilispider_multiprocess_Msg_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               bilibilispider.multiprocess.Serialize.Msg.class, bilibilispider.multiprocess.Serialize.Msg.Builder.class);
+    }
+
+    public interface DanmakuMapOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:bilibilispider.multiprocess.Msg.DanmakuMap)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <code>int32 cid = 1;</code>
+       * @return The cid.
+       */
+      int getCid();
+
+      /**
+       * <code>repeated int64 danmakuId = 2 [packed = true];</code>
+       * @return A list containing the danmakuId.
+       */
+      java.util.List<java.lang.Long> getDanmakuIdList();
+      /**
+       * <code>repeated int64 danmakuId = 2 [packed = true];</code>
+       * @return The count of danmakuId.
+       */
+      int getDanmakuIdCount();
+      /**
+       * <code>repeated int64 danmakuId = 2 [packed = true];</code>
+       * @param index The index of the element to return.
+       * @return The danmakuId at the given index.
+       */
+      long getDanmakuId(int index);
+    }
+    /**
+     * Protobuf type {@code bilibilispider.multiprocess.Msg.DanmakuMap}
+     */
+    public  static final class DanmakuMap extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:bilibilispider.multiprocess.Msg.DanmakuMap)
+        DanmakuMapOrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use DanmakuMap.newBuilder() to construct.
+      private DanmakuMap(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private DanmakuMap() {
+        danmakuId_ = emptyLongList();
+      }
+
+      @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new DanmakuMap();
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      private DanmakuMap(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        this();
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        int mutable_bitField0_ = 0;
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+            com.google.protobuf.UnknownFieldSet.newBuilder();
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 8: {
+
+                cid_ = input.readInt32();
+                break;
+              }
+              case 16: {
+                if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                  danmakuId_ = newLongList();
+                  mutable_bitField0_ |= 0x00000001;
+                }
+                danmakuId_.addLong(input.readInt64());
+                break;
+              }
+              case 18: {
+                int length = input.readRawVarint32();
+                int limit = input.pushLimit(length);
+                if (!((mutable_bitField0_ & 0x00000001) != 0) && input.getBytesUntilLimit() > 0) {
+                  danmakuId_ = newLongList();
+                  mutable_bitField0_ |= 0x00000001;
+                }
+                while (input.getBytesUntilLimit() > 0) {
+                  danmakuId_.addLong(input.readInt64());
+                }
+                input.popLimit(limit);
+                break;
+              }
+              default: {
+                if (!parseUnknownField(
+                    input, unknownFields, extensionRegistry, tag)) {
+                  done = true;
+                }
+                break;
+              }
+            }
+          }
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(this);
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(
+              e).setUnfinishedMessage(this);
+        } finally {
+          if (((mutable_bitField0_ & 0x00000001) != 0)) {
+            danmakuId_.makeImmutable(); // C
+          }
+          this.unknownFields = unknownFields.build();
+          makeExtensionsImmutable();
+        }
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return bilibilispider.multiprocess.Serialize.internal_static_bilibilispider_multiprocess_Msg_DanmakuMap_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return bilibilispider.multiprocess.Serialize.internal_static_bilibilispider_multiprocess_Msg_DanmakuMap_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.class, bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.Builder.class);
+      }
+
+      public static final int CID_FIELD_NUMBER = 1;
+      private int cid_;
+      /**
+       * <code>int32 cid = 1;</code>
+       * @return The cid.
+       */
+      public int getCid() {
+        return cid_;
+      }
+
+      public static final int DANMAKUID_FIELD_NUMBER = 2;
+      private com.google.protobuf.Internal.LongList danmakuId_;
+      /**
+       * <code>repeated int64 danmakuId = 2 [packed = true];</code>
+       * @return A list containing the danmakuId.
+       */
+      public java.util.List<java.lang.Long>
+          getDanmakuIdList() {
+        return danmakuId_;
+      }
+      /**
+       * <code>repeated int64 danmakuId = 2 [packed = true];</code>
+       * @return The count of danmakuId.
+       */
+      public int getDanmakuIdCount() {
+        return danmakuId_.size();
+      }
+      /**
+       * <code>repeated int64 danmakuId = 2 [packed = true];</code>
+       * @param index The index of the element to return.
+       * @return The danmakuId at the given index.
+       */
+      public long getDanmakuId(int index) {
+        return danmakuId_.getLong(index);
+      }
+      private int danmakuIdMemoizedSerializedSize = -1;
+
+      private byte memoizedIsInitialized = -1;
+      @java.lang.Override
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      @java.lang.Override
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        getSerializedSize();
+        if (cid_ != 0) {
+          output.writeInt32(1, cid_);
+        }
+        if (getDanmakuIdList().size() > 0) {
+          output.writeUInt32NoTag(18);
+          output.writeUInt32NoTag(danmakuIdMemoizedSerializedSize);
+        }
+        for (int i = 0; i < danmakuId_.size(); i++) {
+          output.writeInt64NoTag(danmakuId_.getLong(i));
+        }
+        unknownFields.writeTo(output);
+      }
+
+      @java.lang.Override
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (cid_ != 0) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeInt32Size(1, cid_);
+        }
+        {
+          int dataSize = 0;
+          for (int i = 0; i < danmakuId_.size(); i++) {
+            dataSize += com.google.protobuf.CodedOutputStream
+              .computeInt64SizeNoTag(danmakuId_.getLong(i));
+          }
+          size += dataSize;
+          if (!getDanmakuIdList().isEmpty()) {
+            size += 1;
+            size += com.google.protobuf.CodedOutputStream
+                .computeInt32SizeNoTag(dataSize);
+          }
+          danmakuIdMemoizedSerializedSize = dataSize;
+        }
+        size += unknownFields.getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof bilibilispider.multiprocess.Serialize.Msg.DanmakuMap)) {
+          return super.equals(obj);
+        }
+        bilibilispider.multiprocess.Serialize.Msg.DanmakuMap other = (bilibilispider.multiprocess.Serialize.Msg.DanmakuMap) obj;
+
+        if (getCid()
+            != other.getCid()) return false;
+        if (!getDanmakuIdList()
+            .equals(other.getDanmakuIdList())) return false;
+        if (!unknownFields.equals(other.unknownFields)) return false;
+        return true;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        hash = (37 * hash) + CID_FIELD_NUMBER;
+        hash = (53 * hash) + getCid();
+        if (getDanmakuIdCount() > 0) {
+          hash = (37 * hash) + DANMAKUID_FIELD_NUMBER;
+          hash = (53 * hash) + getDanmakuIdList().hashCode();
+        }
+        hash = (29 * hash) + unknownFields.hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static bilibilispider.multiprocess.Serialize.Msg.DanmakuMap parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static bilibilispider.multiprocess.Serialize.Msg.DanmakuMap parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static bilibilispider.multiprocess.Serialize.Msg.DanmakuMap parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static bilibilispider.multiprocess.Serialize.Msg.DanmakuMap parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static bilibilispider.multiprocess.Serialize.Msg.DanmakuMap parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static bilibilispider.multiprocess.Serialize.Msg.DanmakuMap parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static bilibilispider.multiprocess.Serialize.Msg.DanmakuMap parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static bilibilispider.multiprocess.Serialize.Msg.DanmakuMap parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static bilibilispider.multiprocess.Serialize.Msg.DanmakuMap parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static bilibilispider.multiprocess.Serialize.Msg.DanmakuMap parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static bilibilispider.multiprocess.Serialize.Msg.DanmakuMap parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static bilibilispider.multiprocess.Serialize.Msg.DanmakuMap parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      @java.lang.Override
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(bilibilispider.multiprocess.Serialize.Msg.DanmakuMap prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      @java.lang.Override
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code bilibilispider.multiprocess.Msg.DanmakuMap}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:bilibilispider.multiprocess.Msg.DanmakuMap)
+          bilibilispider.multiprocess.Serialize.Msg.DanmakuMapOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return bilibilispider.multiprocess.Serialize.internal_static_bilibilispider_multiprocess_Msg_DanmakuMap_descriptor;
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return bilibilispider.multiprocess.Serialize.internal_static_bilibilispider_multiprocess_Msg_DanmakuMap_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.class, bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.Builder.class);
+        }
+
+        // Construct using bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.newBuilder()
+        private Builder() {
+          maybeForceBuilderInitialization();
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+          maybeForceBuilderInitialization();
+        }
+        private void maybeForceBuilderInitialization() {
+          if (com.google.protobuf.GeneratedMessageV3
+                  .alwaysUseFieldBuilders) {
+          }
+        }
+        @java.lang.Override
+        public Builder clear() {
+          super.clear();
+          cid_ = 0;
+
+          danmakuId_ = emptyLongList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return bilibilispider.multiprocess.Serialize.internal_static_bilibilispider_multiprocess_Msg_DanmakuMap_descriptor;
+        }
+
+        @java.lang.Override
+        public bilibilispider.multiprocess.Serialize.Msg.DanmakuMap getDefaultInstanceForType() {
+          return bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public bilibilispider.multiprocess.Serialize.Msg.DanmakuMap build() {
+          bilibilispider.multiprocess.Serialize.Msg.DanmakuMap result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        @java.lang.Override
+        public bilibilispider.multiprocess.Serialize.Msg.DanmakuMap buildPartial() {
+          bilibilispider.multiprocess.Serialize.Msg.DanmakuMap result = new bilibilispider.multiprocess.Serialize.Msg.DanmakuMap(this);
+          int from_bitField0_ = bitField0_;
+          result.cid_ = cid_;
+          if (((bitField0_ & 0x00000001) != 0)) {
+            danmakuId_.makeImmutable();
+            bitField0_ = (bitField0_ & ~0x00000001);
+          }
+          result.danmakuId_ = danmakuId_;
+          onBuilt();
+          return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+          return super.clone();
+        }
+        @java.lang.Override
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.setField(field, value);
+        }
+        @java.lang.Override
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return super.clearField(field);
+        }
+        @java.lang.Override
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return super.clearOneof(oneof);
+        }
+        @java.lang.Override
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return super.setRepeatedField(field, index, value);
+        }
+        @java.lang.Override
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.addRepeatedField(field, value);
+        }
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof bilibilispider.multiprocess.Serialize.Msg.DanmakuMap) {
+            return mergeFrom((bilibilispider.multiprocess.Serialize.Msg.DanmakuMap)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(bilibilispider.multiprocess.Serialize.Msg.DanmakuMap other) {
+          if (other == bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.getDefaultInstance()) return this;
+          if (other.getCid() != 0) {
+            setCid(other.getCid());
+          }
+          if (!other.danmakuId_.isEmpty()) {
+            if (danmakuId_.isEmpty()) {
+              danmakuId_ = other.danmakuId_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+              ensureDanmakuIdIsMutable();
+              danmakuId_.addAll(other.danmakuId_);
+            }
+            onChanged();
+          }
+          this.mergeUnknownFields(other.unknownFields);
+          onChanged();
+          return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          bilibilispider.multiprocess.Serialize.Msg.DanmakuMap parsedMessage = null;
+          try {
+            parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            parsedMessage = (bilibilispider.multiprocess.Serialize.Msg.DanmakuMap) e.getUnfinishedMessage();
+            throw e.unwrapIOException();
+          } finally {
+            if (parsedMessage != null) {
+              mergeFrom(parsedMessage);
+            }
+          }
+          return this;
+        }
+        private int bitField0_;
+
+        private int cid_ ;
+        /**
+         * <code>int32 cid = 1;</code>
+         * @return The cid.
+         */
+        public int getCid() {
+          return cid_;
+        }
+        /**
+         * <code>int32 cid = 1;</code>
+         * @param value The cid to set.
+         * @return This builder for chaining.
+         */
+        public Builder setCid(int value) {
+          
+          cid_ = value;
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>int32 cid = 1;</code>
+         * @return This builder for chaining.
+         */
+        public Builder clearCid() {
+          
+          cid_ = 0;
+          onChanged();
+          return this;
+        }
+
+        private com.google.protobuf.Internal.LongList danmakuId_ = emptyLongList();
+        private void ensureDanmakuIdIsMutable() {
+          if (!((bitField0_ & 0x00000001) != 0)) {
+            danmakuId_ = mutableCopy(danmakuId_);
+            bitField0_ |= 0x00000001;
+           }
+        }
+        /**
+         * <code>repeated int64 danmakuId = 2 [packed = true];</code>
+         * @return A list containing the danmakuId.
+         */
+        public java.util.List<java.lang.Long>
+            getDanmakuIdList() {
+          return ((bitField0_ & 0x00000001) != 0) ?
+                   java.util.Collections.unmodifiableList(danmakuId_) : danmakuId_;
+        }
+        /**
+         * <code>repeated int64 danmakuId = 2 [packed = true];</code>
+         * @return The count of danmakuId.
+         */
+        public int getDanmakuIdCount() {
+          return danmakuId_.size();
+        }
+        /**
+         * <code>repeated int64 danmakuId = 2 [packed = true];</code>
+         * @param index The index of the element to return.
+         * @return The danmakuId at the given index.
+         */
+        public long getDanmakuId(int index) {
+          return danmakuId_.getLong(index);
+        }
+        /**
+         * <code>repeated int64 danmakuId = 2 [packed = true];</code>
+         * @param index The index to set the value at.
+         * @param value The danmakuId to set.
+         * @return This builder for chaining.
+         */
+        public Builder setDanmakuId(
+            int index, long value) {
+          ensureDanmakuIdIsMutable();
+          danmakuId_.setLong(index, value);
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>repeated int64 danmakuId = 2 [packed = true];</code>
+         * @param value The danmakuId to add.
+         * @return This builder for chaining.
+         */
+        public Builder addDanmakuId(long value) {
+          ensureDanmakuIdIsMutable();
+          danmakuId_.addLong(value);
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>repeated int64 danmakuId = 2 [packed = true];</code>
+         * @param values The danmakuId to add.
+         * @return This builder for chaining.
+         */
+        public Builder addAllDanmakuId(
+            java.lang.Iterable<? extends java.lang.Long> values) {
+          ensureDanmakuIdIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, danmakuId_);
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>repeated int64 danmakuId = 2 [packed = true];</code>
+         * @return This builder for chaining.
+         */
+        public Builder clearDanmakuId() {
+          danmakuId_ = emptyLongList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          onChanged();
+          return this;
+        }
+        @java.lang.Override
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:bilibilispider.multiprocess.Msg.DanmakuMap)
+      }
+
+      // @@protoc_insertion_point(class_scope:bilibilispider.multiprocess.Msg.DanmakuMap)
+      private static final bilibilispider.multiprocess.Serialize.Msg.DanmakuMap DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new bilibilispider.multiprocess.Serialize.Msg.DanmakuMap();
+      }
+
+      public static bilibilispider.multiprocess.Serialize.Msg.DanmakuMap getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<DanmakuMap>
+          PARSER = new com.google.protobuf.AbstractParser<DanmakuMap>() {
+        @java.lang.Override
+        public DanmakuMap parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          return new DanmakuMap(input, extensionRegistry);
+        }
+      };
+
+      public static com.google.protobuf.Parser<DanmakuMap> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<DanmakuMap> getParserForType() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public bilibilispider.multiprocess.Serialize.Msg.DanmakuMap getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
     }
 
     public interface DanmakuPOrBuilder extends
@@ -1352,6 +2071,41 @@ public final class Serialize {
       return danmakus_.get(index);
     }
 
+    public static final int CIDDANMAKUIDS_FIELD_NUMBER = 2;
+    private java.util.List<bilibilispider.multiprocess.Serialize.Msg.DanmakuMap> cidDanmakuIds_;
+    /**
+     * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+     */
+    public java.util.List<bilibilispider.multiprocess.Serialize.Msg.DanmakuMap> getCidDanmakuIdsList() {
+      return cidDanmakuIds_;
+    }
+    /**
+     * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+     */
+    public java.util.List<? extends bilibilispider.multiprocess.Serialize.Msg.DanmakuMapOrBuilder> 
+        getCidDanmakuIdsOrBuilderList() {
+      return cidDanmakuIds_;
+    }
+    /**
+     * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+     */
+    public int getCidDanmakuIdsCount() {
+      return cidDanmakuIds_.size();
+    }
+    /**
+     * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+     */
+    public bilibilispider.multiprocess.Serialize.Msg.DanmakuMap getCidDanmakuIds(int index) {
+      return cidDanmakuIds_.get(index);
+    }
+    /**
+     * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+     */
+    public bilibilispider.multiprocess.Serialize.Msg.DanmakuMapOrBuilder getCidDanmakuIdsOrBuilder(
+        int index) {
+      return cidDanmakuIds_.get(index);
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -1369,6 +2123,9 @@ public final class Serialize {
       for (int i = 0; i < danmakus_.size(); i++) {
         output.writeMessage(1, danmakus_.get(i));
       }
+      for (int i = 0; i < cidDanmakuIds_.size(); i++) {
+        output.writeMessage(2, cidDanmakuIds_.get(i));
+      }
       unknownFields.writeTo(output);
     }
 
@@ -1381,6 +2138,10 @@ public final class Serialize {
       for (int i = 0; i < danmakus_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, danmakus_.get(i));
+      }
+      for (int i = 0; i < cidDanmakuIds_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, cidDanmakuIds_.get(i));
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -1399,6 +2160,8 @@ public final class Serialize {
 
       if (!getDanmakusList()
           .equals(other.getDanmakusList())) return false;
+      if (!getCidDanmakuIdsList()
+          .equals(other.getCidDanmakuIdsList())) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -1413,6 +2176,10 @@ public final class Serialize {
       if (getDanmakusCount() > 0) {
         hash = (37 * hash) + DANMAKUS_FIELD_NUMBER;
         hash = (53 * hash) + getDanmakusList().hashCode();
+      }
+      if (getCidDanmakuIdsCount() > 0) {
+        hash = (37 * hash) + CIDDANMAKUIDS_FIELD_NUMBER;
+        hash = (53 * hash) + getCidDanmakuIdsList().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -1543,6 +2310,7 @@ public final class Serialize {
         if (com.google.protobuf.GeneratedMessageV3
                 .alwaysUseFieldBuilders) {
           getDanmakusFieldBuilder();
+          getCidDanmakuIdsFieldBuilder();
         }
       }
       @java.lang.Override
@@ -1553,6 +2321,12 @@ public final class Serialize {
           bitField0_ = (bitField0_ & ~0x00000001);
         } else {
           danmakusBuilder_.clear();
+        }
+        if (cidDanmakuIdsBuilder_ == null) {
+          cidDanmakuIds_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000002);
+        } else {
+          cidDanmakuIdsBuilder_.clear();
         }
         return this;
       }
@@ -1589,6 +2363,15 @@ public final class Serialize {
           result.danmakus_ = danmakus_;
         } else {
           result.danmakus_ = danmakusBuilder_.build();
+        }
+        if (cidDanmakuIdsBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) != 0)) {
+            cidDanmakuIds_ = java.util.Collections.unmodifiableList(cidDanmakuIds_);
+            bitField0_ = (bitField0_ & ~0x00000002);
+          }
+          result.cidDanmakuIds_ = cidDanmakuIds_;
+        } else {
+          result.cidDanmakuIds_ = cidDanmakuIdsBuilder_.build();
         }
         onBuilt();
         return result;
@@ -1661,6 +2444,32 @@ public final class Serialize {
                    getDanmakusFieldBuilder() : null;
             } else {
               danmakusBuilder_.addAllMessages(other.danmakus_);
+            }
+          }
+        }
+        if (cidDanmakuIdsBuilder_ == null) {
+          if (!other.cidDanmakuIds_.isEmpty()) {
+            if (cidDanmakuIds_.isEmpty()) {
+              cidDanmakuIds_ = other.cidDanmakuIds_;
+              bitField0_ = (bitField0_ & ~0x00000002);
+            } else {
+              ensureCidDanmakuIdsIsMutable();
+              cidDanmakuIds_.addAll(other.cidDanmakuIds_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.cidDanmakuIds_.isEmpty()) {
+            if (cidDanmakuIdsBuilder_.isEmpty()) {
+              cidDanmakuIdsBuilder_.dispose();
+              cidDanmakuIdsBuilder_ = null;
+              cidDanmakuIds_ = other.cidDanmakuIds_;
+              bitField0_ = (bitField0_ & ~0x00000002);
+              cidDanmakuIdsBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getCidDanmakuIdsFieldBuilder() : null;
+            } else {
+              cidDanmakuIdsBuilder_.addAllMessages(other.cidDanmakuIds_);
             }
           }
         }
@@ -1933,6 +2742,246 @@ public final class Serialize {
         }
         return danmakusBuilder_;
       }
+
+      private java.util.List<bilibilispider.multiprocess.Serialize.Msg.DanmakuMap> cidDanmakuIds_ =
+        java.util.Collections.emptyList();
+      private void ensureCidDanmakuIdsIsMutable() {
+        if (!((bitField0_ & 0x00000002) != 0)) {
+          cidDanmakuIds_ = new java.util.ArrayList<bilibilispider.multiprocess.Serialize.Msg.DanmakuMap>(cidDanmakuIds_);
+          bitField0_ |= 0x00000002;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          bilibilispider.multiprocess.Serialize.Msg.DanmakuMap, bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.Builder, bilibilispider.multiprocess.Serialize.Msg.DanmakuMapOrBuilder> cidDanmakuIdsBuilder_;
+
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public java.util.List<bilibilispider.multiprocess.Serialize.Msg.DanmakuMap> getCidDanmakuIdsList() {
+        if (cidDanmakuIdsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(cidDanmakuIds_);
+        } else {
+          return cidDanmakuIdsBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public int getCidDanmakuIdsCount() {
+        if (cidDanmakuIdsBuilder_ == null) {
+          return cidDanmakuIds_.size();
+        } else {
+          return cidDanmakuIdsBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public bilibilispider.multiprocess.Serialize.Msg.DanmakuMap getCidDanmakuIds(int index) {
+        if (cidDanmakuIdsBuilder_ == null) {
+          return cidDanmakuIds_.get(index);
+        } else {
+          return cidDanmakuIdsBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public Builder setCidDanmakuIds(
+          int index, bilibilispider.multiprocess.Serialize.Msg.DanmakuMap value) {
+        if (cidDanmakuIdsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureCidDanmakuIdsIsMutable();
+          cidDanmakuIds_.set(index, value);
+          onChanged();
+        } else {
+          cidDanmakuIdsBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public Builder setCidDanmakuIds(
+          int index, bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.Builder builderForValue) {
+        if (cidDanmakuIdsBuilder_ == null) {
+          ensureCidDanmakuIdsIsMutable();
+          cidDanmakuIds_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          cidDanmakuIdsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public Builder addCidDanmakuIds(bilibilispider.multiprocess.Serialize.Msg.DanmakuMap value) {
+        if (cidDanmakuIdsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureCidDanmakuIdsIsMutable();
+          cidDanmakuIds_.add(value);
+          onChanged();
+        } else {
+          cidDanmakuIdsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public Builder addCidDanmakuIds(
+          int index, bilibilispider.multiprocess.Serialize.Msg.DanmakuMap value) {
+        if (cidDanmakuIdsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureCidDanmakuIdsIsMutable();
+          cidDanmakuIds_.add(index, value);
+          onChanged();
+        } else {
+          cidDanmakuIdsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public Builder addCidDanmakuIds(
+          bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.Builder builderForValue) {
+        if (cidDanmakuIdsBuilder_ == null) {
+          ensureCidDanmakuIdsIsMutable();
+          cidDanmakuIds_.add(builderForValue.build());
+          onChanged();
+        } else {
+          cidDanmakuIdsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public Builder addCidDanmakuIds(
+          int index, bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.Builder builderForValue) {
+        if (cidDanmakuIdsBuilder_ == null) {
+          ensureCidDanmakuIdsIsMutable();
+          cidDanmakuIds_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          cidDanmakuIdsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public Builder addAllCidDanmakuIds(
+          java.lang.Iterable<? extends bilibilispider.multiprocess.Serialize.Msg.DanmakuMap> values) {
+        if (cidDanmakuIdsBuilder_ == null) {
+          ensureCidDanmakuIdsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, cidDanmakuIds_);
+          onChanged();
+        } else {
+          cidDanmakuIdsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public Builder clearCidDanmakuIds() {
+        if (cidDanmakuIdsBuilder_ == null) {
+          cidDanmakuIds_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000002);
+          onChanged();
+        } else {
+          cidDanmakuIdsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public Builder removeCidDanmakuIds(int index) {
+        if (cidDanmakuIdsBuilder_ == null) {
+          ensureCidDanmakuIdsIsMutable();
+          cidDanmakuIds_.remove(index);
+          onChanged();
+        } else {
+          cidDanmakuIdsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.Builder getCidDanmakuIdsBuilder(
+          int index) {
+        return getCidDanmakuIdsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public bilibilispider.multiprocess.Serialize.Msg.DanmakuMapOrBuilder getCidDanmakuIdsOrBuilder(
+          int index) {
+        if (cidDanmakuIdsBuilder_ == null) {
+          return cidDanmakuIds_.get(index);  } else {
+          return cidDanmakuIdsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public java.util.List<? extends bilibilispider.multiprocess.Serialize.Msg.DanmakuMapOrBuilder> 
+           getCidDanmakuIdsOrBuilderList() {
+        if (cidDanmakuIdsBuilder_ != null) {
+          return cidDanmakuIdsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(cidDanmakuIds_);
+        }
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.Builder addCidDanmakuIdsBuilder() {
+        return getCidDanmakuIdsFieldBuilder().addBuilder(
+            bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.Builder addCidDanmakuIdsBuilder(
+          int index) {
+        return getCidDanmakuIdsFieldBuilder().addBuilder(
+            index, bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .bilibilispider.multiprocess.Msg.DanmakuMap cidDanmakuIds = 2;</code>
+       */
+      public java.util.List<bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.Builder> 
+           getCidDanmakuIdsBuilderList() {
+        return getCidDanmakuIdsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          bilibilispider.multiprocess.Serialize.Msg.DanmakuMap, bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.Builder, bilibilispider.multiprocess.Serialize.Msg.DanmakuMapOrBuilder> 
+          getCidDanmakuIdsFieldBuilder() {
+        if (cidDanmakuIdsBuilder_ == null) {
+          cidDanmakuIdsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              bilibilispider.multiprocess.Serialize.Msg.DanmakuMap, bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.Builder, bilibilispider.multiprocess.Serialize.Msg.DanmakuMapOrBuilder>(
+                  cidDanmakuIds_,
+                  ((bitField0_ & 0x00000002) != 0),
+                  getParentForChildren(),
+                  isClean());
+          cidDanmakuIds_ = null;
+        }
+        return cidDanmakuIdsBuilder_;
+      }
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -1992,6 +3041,11 @@ public final class Serialize {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_bilibilispider_multiprocess_Msg_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_bilibilispider_multiprocess_Msg_DanmakuMap_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_bilibilispider_multiprocess_Msg_DanmakuMap_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_bilibilispider_multiprocess_Msg_DanmakuP_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -2006,13 +3060,16 @@ public final class Serialize {
   static {
     java.lang.String[] descriptorData = {
       "\n\017Serialize.proto\022\033bilibilispider.multip" +
-      "rocess\"\376\001\n\003Msg\022;\n\010danmakus\030\001 \003(\0132).bilib" +
-      "ilispider.multiprocess.Msg.DanmakuP\032\271\001\n\010" +
-      "DanmakuP\022\n\n\002id\030\001 \001(\003\022\014\n\004mode\030\002 \001(\005\022\020\n\010fo" +
-      "ntSize\030\003 \001(\005\022\021\n\tfontColor\030\004 \001(\005\022\020\n\010sendT" +
-      "ime\030\005 \001(\003\022\023\n\013danmakuPool\030\006 \001(\005\022\024\n\014danmak" +
-      "uEpoch\030\010 \001(\001\022\020\n\010userHash\030\t \001(\003\022\016\n\006userId" +
-      "\030\n \001(\003\022\017\n\007content\030\013 \001(\tb\006proto3"
+      "rocess\"\364\002\n\003Msg\022;\n\010danmakus\030\001 \003(\0132).bilib" +
+      "ilispider.multiprocess.Msg.DanmakuP\022B\n\rc" +
+      "idDanmakuIds\030\002 \003(\0132+.bilibilispider.mult" +
+      "iprocess.Msg.DanmakuMap\0320\n\nDanmakuMap\022\013\n" +
+      "\003cid\030\001 \001(\005\022\025\n\tdanmakuId\030\002 \003(\003B\002\020\001\032\271\001\n\010Da" +
+      "nmakuP\022\n\n\002id\030\001 \001(\003\022\014\n\004mode\030\002 \001(\005\022\020\n\010font" +
+      "Size\030\003 \001(\005\022\021\n\tfontColor\030\004 \001(\005\022\020\n\010sendTim" +
+      "e\030\005 \001(\003\022\023\n\013danmakuPool\030\006 \001(\005\022\024\n\014danmakuE" +
+      "poch\030\010 \001(\001\022\020\n\010userHash\030\t \001(\003\022\016\n\006userId\030\n" +
+      " \001(\003\022\017\n\007content\030\013 \001(\tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -2023,9 +3080,15 @@ public final class Serialize {
     internal_static_bilibilispider_multiprocess_Msg_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_bilibilispider_multiprocess_Msg_descriptor,
-        new java.lang.String[] { "Danmakus", });
-    internal_static_bilibilispider_multiprocess_Msg_DanmakuP_descriptor =
+        new java.lang.String[] { "Danmakus", "CidDanmakuIds", });
+    internal_static_bilibilispider_multiprocess_Msg_DanmakuMap_descriptor =
       internal_static_bilibilispider_multiprocess_Msg_descriptor.getNestedTypes().get(0);
+    internal_static_bilibilispider_multiprocess_Msg_DanmakuMap_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_bilibilispider_multiprocess_Msg_DanmakuMap_descriptor,
+        new java.lang.String[] { "Cid", "DanmakuId", });
+    internal_static_bilibilispider_multiprocess_Msg_DanmakuP_descriptor =
+      internal_static_bilibilispider_multiprocess_Msg_descriptor.getNestedTypes().get(1);
     internal_static_bilibilispider_multiprocess_Msg_DanmakuP_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_bilibilispider_multiprocess_Msg_DanmakuP_descriptor,

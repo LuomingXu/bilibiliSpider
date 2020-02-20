@@ -49,7 +49,7 @@ public class Analyze {
         ExecutorService pool = Executors.newWorkStealingPool(cpu_use_number);
         Map<Integer, Set<Integer>> aidCidMap = new HashMap<>();
         Map<String, CustomFile> tempFileMap = new HashMap<>();
-        List<Future<List<DanmakuE>>> futures = new ArrayList<>();
+        List<Future<DeconstructE>> futures = new ArrayList<>();
         for (Map.Entry<String, CustomFile> item : customFiles.entrySet()) {
             // todo handle other filetype
             CustomFile file = item.getValue();
@@ -84,11 +84,13 @@ public class Analyze {
         }
 
         List<DanmakuE> danmakuES = new ArrayList<>();
-        for (Future<List<DanmakuE>> item : futures) {
-            danmakuES.addAll(item.get());
+        Map<Integer, Set<Long>> cidDanmakuIds = new HashMap<>();
+        for (Future<DeconstructE> item : futures) {
+            danmakuES.addAll(item.get().getDanmakus());
+            cidDanmakuIds.putAll(item.get().getCidDanmakuIds());
         }
 
-        serializeDanmakus(path + ".danmaku", danmakuES);
+        serializeDanmakus(path + ".danmaku", danmakuES, cidDanmakuIds);
         saveAidCidRealation(path + ".aidcid", aidCidMap);
     }
 
@@ -162,9 +164,9 @@ public class Analyze {
         return files;
     }
 
-    public void serializeDanmakus(String fileName, List<DanmakuE> list) throws Exception {
+    public void serializeDanmakus(String fileName, List<DanmakuE> list, Map<Integer, Set<Long>> map) throws Exception {
         Serialize.Msg.Builder msgBuilder = Serialize.Msg.newBuilder();
-        Serialize.Msg.DanmakuP.Builder builder = null;
+        Serialize.Msg.DanmakuP.Builder builder;
         List<Serialize.Msg.DanmakuP> l = new ArrayList<>();
         for (DanmakuE item : list) {
             builder = Serialize.Msg.DanmakuP.newBuilder();
@@ -180,7 +182,18 @@ public class Analyze {
             l.add(builder.build());
         }
 
-        Serialize.Msg msg = Serialize.Msg.newBuilder().addAllDanmakus(l).build();
+        Serialize.Msg.DanmakuMap.Builder mapBuilder;
+        List<Serialize.Msg.DanmakuMap> m = new ArrayList<>();
+        for (Map.Entry<Integer, Set<Long>> item : map.entrySet()) {
+            mapBuilder = Serialize.Msg.DanmakuMap.newBuilder();
+            mapBuilder.setCid(item.getKey());
+            mapBuilder.addAllDanmakuId(item.getValue());
+            m.add(mapBuilder.build());
+        }
+
+        msgBuilder.addAllCidDanmakuIds(m);
+        Serialize.Msg msg = msgBuilder.addAllDanmakus(l).build();
+
 
         msg.writeTo(new FileOutputStream(new File(fileName)));
     }
@@ -192,7 +205,9 @@ public class Analyze {
         FileUtils.write(new File(path), json, StandardCharsets.UTF_8);
     }
 
-    public List<DanmakuE> deserializeDanmakus(String path) throws Exception {
+    public DeconstructE deserializeDanmakus(String path) throws Exception {
+        DeconstructE res = new DeconstructE();
+
         Serialize.Msg msg = Serialize.Msg.parseFrom(new FileInputStream(path));
         List<DanmakuE> l = new ArrayList<>();
         for (Serialize.Msg.DanmakuP item : msg.getDanmakusList()) {
@@ -209,8 +224,16 @@ public class Analyze {
                     new DateTime(item.getSendTime(), DateTimeZone.forOffsetHours(8)).toDate());
             l.add(obj);
         }
+        res.setDanmakus(l);
 
-        return l;
+        Map<Integer, Set<Long>> map = new HashMap<>();
+        for (Serialize.Msg.DanmakuMap item : msg.getCidDanmakuIdsList()) {
+            Set<Long> value = map.computeIfAbsent(item.getCid(), k -> new HashSet<>());
+            value.addAll(item.getDanmakuIdList());
+        }
+
+        res.setCidDanmakuIds(map);
+        return res;
     }
 
     /**
@@ -228,7 +251,7 @@ public class Analyze {
                 (ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed() / 1024 / 1024);
     }
 
-    static class Deconstruct implements Callable<List<DanmakuE>> {
+    static class Deconstruct implements Callable<DeconstructE> {
         private Map<String, CustomFile> fileMap;
 
         public Deconstruct(Map<String, CustomFile> fileMap) {
@@ -236,10 +259,17 @@ public class Analyze {
         }
 
         @Override//todo save cid-danmakuId
-        public List<DanmakuE> call() throws Exception {
+        public DeconstructE call() throws Exception {
+            DeconstructE res = new DeconstructE();
             List<DanmakuE> danmakus = new ArrayList<>();
+            Map<Integer, Set<Long>> map = new HashMap<>();
 
             for (Map.Entry<String, CustomFile> item : fileMap.entrySet()) {
+                Set<Long> set = map.get(item.getValue().getCid());
+                if (set == null) {
+                    set = new HashSet<>();
+                }
+
                 try {
                     Document document = DocumentHelper.parseText(item.getValue().getContent());
 
@@ -262,6 +292,7 @@ public class Analyze {
                             entity.setContent(elem.getStringValue());
 
                             danmakus.add(entity);
+                            set.add(entity.getId());
                         }
                     }
                 } catch (Exception e) {
@@ -269,9 +300,12 @@ public class Analyze {
                     e.printStackTrace();
                     System.exit(0);
                 }
+                map.put(item.getValue().getCid(), set);
             }
 
-            return danmakus;
+            res.setDanmakus(danmakus);
+            res.setCidDanmakuIds(map);
+            return res;
         }
     }
 }

@@ -42,7 +42,7 @@ public class S3Configuration implements AWSCredentialsProvider {
     @Override
     public AWSCredentials getCredentials() {
         return new BasicAWSCredentials(
-                "AKID848zyhXM4sX1KPnmwwhOmxwnRHtGMMBm", "WhfRyHNPDm8HCsKYYJpIpAISQBiz40kH");
+                this.accessKey, this.secretKey);
     }
 
     @Override
