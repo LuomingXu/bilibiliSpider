@@ -1,5 +1,7 @@
-package bilibilispider.multiprocess;
+package bilibilispider.multiprocess.analyze;
 
+import bilibilispider.multiprocess.S3Configuration;
+import bilibilispider.multiprocess.Serialize;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -27,10 +29,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 @Slf4j
-@Service
+@Service("analyze")
 @SuppressWarnings("unchecked")
 public class Analyze {
     @Autowired private S3Configuration config;
+    @Autowired private bilibilispider.multiprocess.online.Analyze analyze;
 
     public void main(String path) throws Exception {
         int cpu_use_number = config.getCpuUseNumber();
@@ -51,25 +54,31 @@ public class Analyze {
         Map<String, CustomFile> tempFileMap = new HashMap<>();
         List<Future<DeconstructE>> futures = new ArrayList<>();
         for (Map.Entry<String, CustomFile> item : customFiles.entrySet()) {
-            // todo handle other filetype
             CustomFile file = item.getValue();
 
-            if (!file.getFileType().equals(CustomFile.FileType.Danmaku)) {
-                continue;
-            }
+            switch (file.getFileType()) {
+                case AvCids:  // todo handle
+                    break;
+                case Online:
+                    analyze.main(file.getContent(), file.getCreateTime());
+                    break;
+                case Danmaku:
+                    if (aidCidMap.get(file.getAid()) == null) {
+                        Set<Integer> temp = new HashSet<>();
+                        temp.add(file.getCid());
+                        aidCidMap.put(file.getAid(), temp);
+                    } else {
+                        aidCidMap.get(file.getAid()).add(file.getCid());
+                    }
 
-            if (aidCidMap.get(file.getAid()) == null) {
-                Set<Integer> temp = new HashSet<>();
-                temp.add(file.getCid());
-                aidCidMap.put(file.getAid(), temp);
-            } else {
-                aidCidMap.get(file.getAid()).add(file.getCid());
-            }
-
-            tempFileMap.put(item.getKey(), file);
-            if (tempFileMap.size() == size) {
-                futures.add(pool.submit(new Deconstruct(tempFileMap)));
-                tempFileMap = new HashMap<>();
+                    tempFileMap.put(item.getKey(), file);
+                    if (tempFileMap.size() == size) {
+                        futures.add(pool.submit(new Deconstruct(tempFileMap)));
+                        tempFileMap = new HashMap<>();
+                    }
+                    break;
+                default:
+                    break;
             }
         }
         futures.add(pool.submit(new Deconstruct(tempFileMap)));
@@ -164,7 +173,8 @@ public class Analyze {
         return files;
     }
 
-    public void serializeDanmakus(String fileName, List<DanmakuE> list, Map<Integer, Set<Long>> map) throws Exception {
+    public void serializeDanmakus(String fileName, List<DanmakuE> list, Map<Integer, Set<Long>> map)
+            throws Exception {
         Serialize.Msg.Builder msgBuilder = Serialize.Msg.newBuilder();
         Serialize.Msg.DanmakuP.Builder builder;
         List<Serialize.Msg.DanmakuP> l = new ArrayList<>();
@@ -194,12 +204,10 @@ public class Analyze {
         msgBuilder.addAllCidDanmakuIds(m);
         Serialize.Msg msg = msgBuilder.addAllDanmakus(l).build();
 
-
         msg.writeTo(new FileOutputStream(new File(fileName)));
     }
 
-    public void saveAidCidRealation(String path, Map<Integer, Set<Integer>> map) throws Exception
-    {
+    public void saveAidCidRealation(String path, Map<Integer, Set<Integer>> map) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         String json = objectMapper.writeValueAsString(map);
         FileUtils.write(new File(path), json, StandardCharsets.UTF_8);
@@ -236,11 +244,8 @@ public class Analyze {
         return res;
     }
 
-    /**
-     * 这边读取返回的时候key会变成String
-     */
-    public Map<Integer, Set<Integer>> readAidCidRealation(String path) throws Exception
-    {
+    /** 这边读取返回的时候key会变成String */
+    public Map<Integer, Set<Integer>> readAidCidRealation(String path) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         String json = FileUtils.readFileToString(new File(path), StandardCharsets.UTF_8);
         return objectMapper.readValue(json, Map.class);
@@ -258,7 +263,7 @@ public class Analyze {
             this.fileMap = fileMap;
         }
 
-        @Override//todo save cid-danmakuId
+        @Override
         public DeconstructE call() throws Exception {
             DeconstructE res = new DeconstructE();
             List<DanmakuE> danmakus = new ArrayList<>();

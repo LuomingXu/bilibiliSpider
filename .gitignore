@@ -9,3 +9,4 @@
 **/*.aidcid
 **/*.ciddanmaku
 !/multi_danmaku_v3_Java/pom.xml
+!/multi_danmaku_v3_Java/src/main/resources/**

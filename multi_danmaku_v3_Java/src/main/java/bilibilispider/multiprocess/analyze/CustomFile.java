@@ -1,4 +1,4 @@
-package bilibilispider.multiprocess;
+package bilibilispider.multiprocess.analyze;
 
 import lombok.Data;
 import org.joda.time.DateTime;

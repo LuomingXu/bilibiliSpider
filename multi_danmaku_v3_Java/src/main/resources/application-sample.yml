@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: multi-process
+  datasource:
+    url:
+    username:
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    port: 6379
+    database: 1
+    host: localhost
+  jackson:
+    time-zone: GMT+0800
+server:
+  port: 8080
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+s3:
+  endpoint:
+  region:
+  bucket:
+  access-key:
+  secret-key:
+  temp-file-dir:
+  cpu-use-number:

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="bilibilispider.multiprocess.online.AvStatMapper">
+    <resultMap id="BaseResultMap" type="bilibilispider.multiprocess.online.AvStat">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="aid" jdbcType="BIGINT" property="aid"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="view" jdbcType="INTEGER" property="view"/>
+        <result column="danmaku" jdbcType="INTEGER" property="danmaku"/>
+        <result column="reply" jdbcType="INTEGER" property="reply"/>
+        <result column="favorite" jdbcType="INTEGER" property="favorite"/>
+        <result column="coin" jdbcType="INTEGER" property="coin"/>
+        <result column="share" jdbcType="INTEGER" property="share"/>
+        <result column="rank" jdbcType="TINYINT" property="rank"/>
+        <result column="now_rank" jdbcType="TINYINT" property="nowRank"/>
+        <result column="his_rank" jdbcType="SMALLINT" property="hisRank"/>
+        <result column="like" jdbcType="INTEGER" property="like"/>
+        <result column="dislike" jdbcType="INTEGER" property="dislike"/>
+        <result column="online_count" jdbcType="INTEGER" property="onlineCount"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    id, aid, create_time, `view`, danmaku, reply, favorite, coin, `share`, `rank`, now_rank, 
+    his_rank, `like`, dislike, online_count
+  </sql>
+</mapper>

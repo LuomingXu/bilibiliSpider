@@ -1,4 +1,4 @@
-package bilibilispider.multiprocess;
+package bilibilispider.multiprocess.analyze;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;

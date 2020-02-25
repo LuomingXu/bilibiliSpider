@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="bilibilispider.multiprocess.online.AvInfoMapper">
+    <resultMap id="BaseResultMap" type="bilibilispider.multiprocess.online.AvInfo">
+        <id column="aid" jdbcType="BIGINT" property="aid"/>
+        <result column="videos" jdbcType="INTEGER" property="videos"/>
+        <result column="tid" jdbcType="INTEGER" property="tid"/>
+        <result column="tname" jdbcType="VARCHAR" property="tname"/>
+        <result column="copyright" jdbcType="INTEGER" property="copyright"/>
+        <result column="pic" jdbcType="VARCHAR" property="pic"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="pubdate" jdbcType="TIMESTAMP" property="pubdate"/>
+        <result column="ctime" jdbcType="TIMESTAMP" property="ctime"/>
+        <result column="desc" jdbcType="VARCHAR" property="desc"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="attribute" jdbcType="INTEGER" property="attribute"/>
+        <result column="duration" jdbcType="INTEGER" property="duration"/>
+        <result column="mission_id" jdbcType="BIGINT" property="missionId"/>
+        <result column="dynamic" jdbcType="VARCHAR" property="dynamic"/>
+        <result column="cid" jdbcType="BIGINT" property="cid"/>
+        <result column="bvid" jdbcType="VARCHAR" property="bvid"/>
+        <result column="owner_mid" jdbcType="BIGINT" property="ownerMid"/>
+        <result column="stat_aid" jdbcType="BIGINT" property="statAid"/>
+        <result column="right_bp" jdbcType="TINYINT" property="rightBp"/>
+        <result column="right_elec" jdbcType="TINYINT" property="rightElec"/>
+        <result column="right_download" jdbcType="TINYINT" property="rightDownload"/>
+        <result column="right_movie" jdbcType="TINYINT" property="rightMovie"/>
+        <result column="right_pay" jdbcType="TINYINT" property="rightPay"/>
+        <result column="right_hd5" jdbcType="TINYINT" property="rightHd5"/>
+        <result column="right_no_reprint" jdbcType="TINYINT" property="rightNoReprint"/>
+        <result column="right_autoplay" jdbcType="TINYINT" property="rightAutoplay"/>
+        <result column="right_ugc_pay" jdbcType="TINYINT" property="rightUgcPay"/>
+        <result column="right_is_cooperation" jdbcType="TINYINT" property="rightIsCooperation"/>
+        <result column="right_ugc_pay_preview" jdbcType="TINYINT" property="rightUgcPayPreview"/>
+        <result column="right_no_background" jdbcType="TINYINT" property="rightNoBackground"/>
+        <result column="dimension_width" jdbcType="INTEGER" property="dimensionWidth"/>
+        <result column="dimension_height" jdbcType="INTEGER" property="dimensionHeight"/>
+        <result column="dimension_rotate" jdbcType="TINYINT" property="dimensionRotate"/>
+        <result column="last_update_time" jdbcType="TIMESTAMP" property="lastUpdateTime"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    aid, videos, tid, tname, copyright, pic, title, pubdate, ctime, `desc`, `state`, 
+    `attribute`, duration, mission_id, `dynamic`, cid, bvid, owner_mid, stat_aid, right_bp, 
+    right_elec, right_download, right_movie, right_pay, right_hd5, right_no_reprint, 
+    right_autoplay, right_ugc_pay, right_is_cooperation, right_ugc_pay_preview, right_no_background, 
+    dimension_width, dimension_height, dimension_rotate, last_update_time, create_time
+  </sql>
+</mapper>

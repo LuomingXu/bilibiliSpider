@@ -1,5 +1,6 @@
 package bilibilispider.multiprocess;
 
+import bilibilispider.multiprocess.analyze.Analyze;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
