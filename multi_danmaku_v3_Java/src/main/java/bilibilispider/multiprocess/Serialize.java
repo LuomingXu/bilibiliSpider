@@ -175,10 +175,10 @@ public final class Serialize {
         com.google.protobuf.MessageOrBuilder {
 
       /**
-       * <code>int32 cid = 1;</code>
+       * <code>int64 cid = 1;</code>
        * @return The cid.
        */
-      int getCid();
+      long getCid();
 
       /**
        * <code>repeated int64 danmakuId = 2 [packed = true];</code>
@@ -246,7 +246,7 @@ public final class Serialize {
                 break;
               case 8: {
 
-                cid_ = input.readInt32();
+                cid_ = input.readInt64();
                 break;
               }
               case 16: {
@@ -306,12 +306,12 @@ public final class Serialize {
       }
 
       public static final int CID_FIELD_NUMBER = 1;
-      private int cid_;
+      private long cid_;
       /**
-       * <code>int32 cid = 1;</code>
+       * <code>int64 cid = 1;</code>
        * @return The cid.
        */
-      public int getCid() {
+      public long getCid() {
         return cid_;
       }
 
@@ -357,8 +357,8 @@ public final class Serialize {
       public void writeTo(com.google.protobuf.CodedOutputStream output)
                           throws java.io.IOException {
         getSerializedSize();
-        if (cid_ != 0) {
-          output.writeInt32(1, cid_);
+        if (cid_ != 0L) {
+          output.writeInt64(1, cid_);
         }
         if (getDanmakuIdList().size() > 0) {
           output.writeUInt32NoTag(18);
@@ -376,9 +376,9 @@ public final class Serialize {
         if (size != -1) return size;
 
         size = 0;
-        if (cid_ != 0) {
+        if (cid_ != 0L) {
           size += com.google.protobuf.CodedOutputStream
-            .computeInt32Size(1, cid_);
+            .computeInt64Size(1, cid_);
         }
         {
           int dataSize = 0;
@@ -425,7 +425,8 @@ public final class Serialize {
         int hash = 41;
         hash = (19 * hash) + getDescriptor().hashCode();
         hash = (37 * hash) + CID_FIELD_NUMBER;
-        hash = (53 * hash) + getCid();
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getCid());
         if (getDanmakuIdCount() > 0) {
           hash = (37 * hash) + DANMAKUID_FIELD_NUMBER;
           hash = (53 * hash) + getDanmakuIdList().hashCode();
@@ -563,7 +564,7 @@ public final class Serialize {
         @java.lang.Override
         public Builder clear() {
           super.clear();
-          cid_ = 0;
+          cid_ = 0L;
 
           danmakuId_ = emptyLongList();
           bitField0_ = (bitField0_ & ~0x00000001);
@@ -648,7 +649,7 @@ public final class Serialize {
 
         public Builder mergeFrom(bilibilispider.multiprocess.Serialize.Msg.DanmakuMap other) {
           if (other == bilibilispider.multiprocess.Serialize.Msg.DanmakuMap.getDefaultInstance()) return this;
-          if (other.getCid() != 0) {
+          if (other.getCid() != 0L) {
             setCid(other.getCid());
           }
           if (!other.danmakuId_.isEmpty()) {
@@ -691,32 +692,32 @@ public final class Serialize {
         }
         private int bitField0_;
 
-        private int cid_ ;
+        private long cid_ ;
         /**
-         * <code>int32 cid = 1;</code>
+         * <code>int64 cid = 1;</code>
          * @return The cid.
          */
-        public int getCid() {
+        public long getCid() {
           return cid_;
         }
         /**
-         * <code>int32 cid = 1;</code>
+         * <code>int64 cid = 1;</code>
          * @param value The cid to set.
          * @return This builder for chaining.
          */
-        public Builder setCid(int value) {
+        public Builder setCid(long value) {
           
           cid_ = value;
           onChanged();
           return this;
         }
         /**
-         * <code>int32 cid = 1;</code>
+         * <code>int64 cid = 1;</code>
          * @return This builder for chaining.
          */
         public Builder clearCid() {
           
-          cid_ = 0;
+          cid_ = 0L;
           onChanged();
           return this;
         }
@@ -3064,7 +3065,7 @@ public final class Serialize {
       "ilispider.multiprocess.Msg.DanmakuP\022B\n\rc" +
       "idDanmakuIds\030\002 \003(\0132+.bilibilispider.mult" +
       "iprocess.Msg.DanmakuMap\0320\n\nDanmakuMap\022\013\n" +
-      "\003cid\030\001 \001(\005\022\025\n\tdanmakuId\030\002 \003(\003B\002\020\001\032\271\001\n\010Da" +
+      "\003cid\030\001 \001(\003\022\025\n\tdanmakuId\030\002 \003(\003B\002\020\001\032\271\001\n\010Da" +
       "nmakuP\022\n\n\002id\030\001 \001(\003\022\014\n\004mode\030\002 \001(\005\022\020\n\010font" +
       "Size\030\003 \001(\005\022\021\n\tfontColor\030\004 \001(\005\022\020\n\010sendTim" +
       "e\030\005 \001(\003\022\023\n\013danmakuPool\030\006 \001(\005\022\024\n\014danmakuE" +

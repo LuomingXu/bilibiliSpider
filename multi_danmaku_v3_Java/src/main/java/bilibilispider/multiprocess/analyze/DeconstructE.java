@@ -11,5 +11,5 @@ public class DeconstructE
 {
     private List<DanmakuE> danmakus;
 
-    private Map<Integer, Set<Long>> cidDanmakuIds;
+    private Map<Long, Set<Long>> cidDanmakuIds;
 }

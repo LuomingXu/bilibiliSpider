@@ -1,5 +1,6 @@
 package bilibilispider.multiprocess.online;
 
+import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +21,7 @@ public class Analyze {
     @Transient
     public void main(String json, DateTime createTime) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.enable(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature());
         JsonNode j = objectMapper.readTree(json);
         List<OnlineData> dataList =
                 objectMapper.readValue(
@@ -33,11 +35,21 @@ public class Analyze {
             AvInfo exist = infoService.lambdaQuery().eq(AvInfo::getAid, item.getAid()).one();
             if (exist == null) {
                 log.info("[Insert] aid: {}", item.getAid());
-                infoService.save(info);
+                if (infoService.save(info)) {
+                    log.info("[Insert] av info success");
+                } else {
+                    log.error("[Insert] av info failed");
+                    throw new Exception();
+                }
             } else {
                 log.info("[Update] aid: {}", item.getAid());
             }
-            statService.save(stat);
+            if (statService.save(stat)) {
+                log.info("[Insert] av stat success");
+            } else {
+                log.error("[Insert] av stat failed");
+                throw new Exception();
+            }
         }
     }
 }

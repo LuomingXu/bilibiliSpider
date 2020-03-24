@@ -13,9 +13,9 @@ public class CustomFile {
 
     private DateTime createTime;
 
-    private Integer aid;
+    private Long aid;
 
-    private Integer cid;
+    private Long cid;
 
     public enum FileType {
         Online,

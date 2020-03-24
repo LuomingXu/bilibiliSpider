@@ -27,7 +27,9 @@ public class Main implements CommandLineRunner {
 
         File file = new File(config.getTempFileDir());
         for (File item : Objects.requireNonNull(file.listFiles())) {
-            analyze.main(item.getPath());
+            if (item.isDirectory()) {
+                analyze.main(item.getPath());
+            }
         }
     }
 }
