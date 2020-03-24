@@ -11,7 +11,6 @@ import _email
 import _s3
 import _user
 import config
-import danmaku
 import local_processing
 import online
 from config import log, regular_spider_delta, quick_spider_delta, night_spider_delta, \
@@ -68,7 +67,8 @@ if __name__ == '__main__':
           res = online.getting_data()
           waiting_upload_files.update(res[0])  # online
           _user.__main__(res[2])  # owner
-          waiting_upload_files.update(danmaku.getting_data(res[1]))  # danmaku
+          # no more crawling danmakus
+          # waiting_upload_files.update(danmaku.getting_data(res[1]))  # danmaku
 
           _s3.put(waiting_upload_files)  # save to oss
 
