@@ -22,7 +22,16 @@ def getting_data() -> ({str: str}, List[int], Set[int]):
 
   # 获取其中包含的json
   scripts: List[Tag] = soup.find_all(name = 'script')
-  script: Tag = scripts.pop(5)  # 需要的script标签位于第五个
+
+  # 需要的script标签
+  script: Tag = scripts[6]  # 一般在第5个, 但是有可能会改, 比如20-4/13 17:43:41从第5改为了第6
+  if script.__str__().__contains__("onlineList"):
+    pass
+  else:
+    for tag in scripts:
+      if tag.__str__().__contains__("onlineList"):
+        script = tag
+        break
   pattern = re.compile(r'{([\s\S]*)\};')
   value = pattern.findall(script.prettify())
   temp = '{' + str(value[0]).replace('\\n', '') + '}'  # remove \n
