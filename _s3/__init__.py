@@ -34,8 +34,11 @@ def get_all_objects_key() -> Set[str]:
     res: dict = tx_client.list_objects(**args)
     res.pop('ResponseMetadata', None)  # remove useless key's data
     obj: Objects = selfusepy.parse_json(json.dumps(res, default = str), Objects())
-    for item in obj.Contents:
-      object_keys.add(item.Key)
+    if isinstance(obj.Contents, list):
+      for item in obj.Contents:
+        object_keys.add(item.Key)
+    else:
+      return object_keys
 
     if not obj.IsTruncated:
       break

@@ -11,7 +11,7 @@ import _email
 import _s3
 import _user
 import config
-import local_processing
+import local_processing_v2
 import online
 from config import log, regular_spider_delta, quick_spider_delta, night_spider_delta, \
   regular_set, quick_set, night_set, email_to_addr, red
@@ -32,7 +32,8 @@ if __name__ == '__main__':
       """
       在本机上进行数据的处理, 充分利用3700x😁
       """
-      local_processing.main()
+      # local_processing.main()
+      local_processing_v2.main()
       exit(0)
     else:
       """

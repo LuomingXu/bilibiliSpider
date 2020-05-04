@@ -24,7 +24,7 @@ def getting_data() -> ({str: str}, List[int], Set[int]):
   scripts: List[Tag] = soup.find_all(name = 'script')
 
   # 需要的script标签
-  script: Tag = scripts[6]  # 一般在第5个, 但是有可能会改, 比如20-4/13 17:43:41从第5改为了第6
+  script: Tag = scripts[6]  # 一般在第5个, 但是有可能会改, 比如20/4/13 17:43:41从第5改为了第6
   if script.__str__().__contains__("onlineList"):
     pass
   else:
