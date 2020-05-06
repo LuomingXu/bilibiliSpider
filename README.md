@@ -4,7 +4,7 @@ bilibili spider
 
 #### Require
 
-purpose|dependency
+| |dependencies
 ---|------
 db|sqlalchemy, pymysql
 http|urllib3
@@ -13,7 +13,10 @@ xml|bs4, lxml
 util|selfusepy
 cache|redis
 
+##### tips
+
     ids_spliced = [ids[i:i + size] for i in range(0, len(ids), size)]
+    list.sort(key = lambda k: k["id"])
     注意引用传递
-    _map(key, None)
-    Pool要用Manage().Queue()
+    use map.pop(key, None)
+    multiprocess Pool要用Manage().Queue()
