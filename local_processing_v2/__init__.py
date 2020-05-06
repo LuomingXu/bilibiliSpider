@@ -19,13 +19,14 @@ def read_file(dir: str, _map: MutableMapping[str, AV] = None) -> MutableMapping[
 
   dir_or_files = os.listdir(dir)
   for item in dir_or_files:
-    current_path = dir + item
-    if os.path.isdir(current_path):
-      current_path += "/"
-      read_file(current_path, _map)
-    else:
-      s: str = open(current_path, "r", encoding = "utf-8").read()
-      _map[current_path] = selfusepy.parse_json(s, AV())
+    if not item.startswith("."):
+      current_path = dir + item
+      if os.path.isdir(current_path):
+        current_path += "/"
+        read_file(current_path, _map)
+      else:
+        s: str = open(current_path, "r", encoding = "utf-8").read()
+        _map[current_path] = selfusepy.parse_json(s, AV())
 
   return _map
 
@@ -93,7 +94,7 @@ def main():
     raise e
   finally:
     # save
-    _file.save(save_succeed_filename.__str__(), temp_file_dir + "saved.txt")
+    _file.save(save_succeed_filename.__str__(), temp_file_dir + ".saved.txt")
     for item in save_succeed_filename:
       shutil.move(item, "D:/spider archive")
 
