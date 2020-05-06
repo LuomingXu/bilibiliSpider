@@ -1,16 +1,45 @@
+import math
+import multiprocessing
 import os
 import shutil
+import traceback
 from datetime import datetime, timezone, timedelta
+from multiprocessing import Pool
+from multiprocessing.pool import ApplyResult
+from queue import Queue
 from typing import MutableMapping
 from typing import Set, List
 
 import selfusepy
+from sqlalchemy.engine import ResultProxy
 
-import _file
 import _s3
 import local_processing
-from config import log, DBSession
+from config import log, DBSession, cpu_use_number
 from online import AV, AVInfoDO, AVStatDO
+
+
+def analyze(q: Queue, data: MutableMapping[str, AV]) -> (List[AVInfoDO], List[AVStatDO]):
+  infos: List[AVInfoDO] = []
+  stats: List[AVStatDO] = []
+  try:
+    for file_name, obj in data.items():
+      l: List[str] = os.path.basename(file_name).split(".")
+      time_ns = int(l[0])
+      get_data_time = datetime.fromtimestamp(time_ns / 1000_000_000, timezone(offset = timedelta(hours = 8)))
+      log.info("[Analyze] top avs data: %s" % get_data_time.isoformat())
+      for i, item in enumerate(obj.onlineList):
+        avInfoDO = AVInfoDO(item)
+        avStatDO = AVStatDO(item, i + 1, get_data_time)
+        infos.append(avInfoDO)
+        stats.append(avStatDO)
+  except BaseException as e:
+    name = multiprocessing.current_process().name
+    _map: MutableMapping[str, str] = {name: traceback.format_exc()}
+    q.put(_map)
+    print('Oops: ', name)
+  finally:
+    return infos, stats
 
 
 def read_file(dir: str, _map: MutableMapping[str, AV] = None) -> MutableMapping[str, AV]:
@@ -48,54 +77,64 @@ def main():
   # reading data
   all_data: MutableMapping[str, AV] = read_file(temp_file_dir)
 
-  # save
-  exist_aids: Set[int] = set()
-  save_succeed_filename: Set[str] = set()
+  log.info("Analyze")
+  # multi analyze
+  pool = Pool(processes = cpu_use_number)
+  q = multiprocessing.Manager().Queue()
 
-  try:
-    for file_name, obj in all_data.items():
-      l: List[str] = os.path.basename(file_name).split(".")
-      time_ns = int(l[0])
-      get_data_time = datetime.fromtimestamp(time_ns / 1000_000_000, timezone(offset = timedelta(hours = 8)))
-      log.info("[Saving] top avs data: %s" % get_data_time.isoformat())
-      session = DBSession()
-      for i, item in enumerate(obj.onlineList):
-        avInfoDO = None
-        avStatDO = AVStatDO(item, i + 1, get_data_time)
+  size = int(math.ceil(all_data.__len__() / float(cpu_use_number)))
+  map_temp: MutableMapping[str, AV] = {}
 
-        if exist_aids.__contains__(avStatDO.aid):
-          exist = True
-        else:
-          avInfoDO = AVInfoDO(item)
-          exist = session.query(AVInfoDO).filter(AVInfoDO.aid == avInfoDO.aid).first()
+  res: List[ApplyResult] = list()
+  for key, value in all_data.items():
+    map_temp[key] = value
+    if map_temp.__len__() % size == 0:
+      res.append(pool.apply_async(func = analyze, args = (q, map_temp,)))
+      map_temp = {}
+  res.append(pool.apply_async(func = analyze, args = (q, map_temp,)))
+  pool.close()
+  pool.join()
+  if q.qsize() > 0:  # 当queue的size大于0的话, 那就是进程里面出现了错误, raise, 结束任务
+    log.error('analyze occurs error')
+    raise Exception(q)
 
-        """
-        存在则只添加statistic
-        """
-        try:
-          if not exist:
-            session.add(avInfoDO)
-            session.add(avStatDO)
-            log.info('[INSERT] aid: %s' % avInfoDO.aid)
-          else:
-            exist_aids.add(avStatDO.aid)
-            session.add(avStatDO)
-            log.info('[UPDATE] av statistics, aid: %s' % avStatDO.aid)
+  # saving
+  all_avinfos: List[AVInfoDO] = []
+  all_avstats: List[AVStatDO] = []
+  for item in res:
+    v = item.get()
+    all_avinfos.extend(v[0])
+    all_avstats.extend(v[1])
 
-          session.commit()
-        except BaseException as e:
-          session.rollback()
-          raise e
-        else:
-          log.info("[Update or Insert] success")
-      index: int = file_name.find("/online")
-      save_succeed_filename.add(file_name[:index])
-  except BaseException as e:
-    raise e
-  finally:
-    # save
-    _file.save(save_succeed_filename.__str__(), temp_file_dir + ".saved.txt")
-    for item in save_succeed_filename:
-      shutil.move(item, "D:/spider archive")
+  # remove avinfos which exist in db already and same in program
+  log.info("Remove avinfos")
+  temp: Set[int] = set()  # db
+  for item in all_avinfos:
+    temp.add(item.aid)
+  session = DBSession()
+  sql: str = "select aid from av_info where aid in (%s)" % ",".join("%s" % item for item in temp)
+  aids: ResultProxy = session.execute(sql)
+  temp.clear()
+  for item in aids.fetchall():
+    temp.add(int(item[0]))
 
-  log.info("Done!")
+  temp2: List[AVInfoDO] = []  # program
+  for item in all_avinfos:
+    if not temp.__contains__(item.aid):
+      temp2.append(item)
+      temp.add(item.aid)
+  all_avinfos = temp2
+
+  # db
+  log.info("Save infos(%s) and stats(%s)" % (all_avinfos.__len__(), all_avstats.__len__()))
+  session.bulk_save_objects(all_avinfos)
+  session.bulk_save_objects(all_avstats)
+  session.commit()
+
+  # archive
+  log.info("Archive")
+  for item in all_data.keys():
+    index: int = item.find("/online")
+    shutil.move(item[:index], "D:/spider archive")
+
+  log.info('[Done]')
