@@ -61,6 +61,10 @@ def read_file(dir: str, _map: MutableMapping[str, AV] = None) -> MutableMapping[
 
 
 def main():
+  """
+  测试需要调整数据库, s3删除, archive目录
+  :return:
+  """
   temp_file_dir = 'data-temp/'
 
   # download data
@@ -69,6 +73,7 @@ def main():
 
   if keys.__len__() < 1:
     log.info("No file in COS!")
+    exit(0)
   else:
     local_processing.multi_download(temp_file_dir, keys)
     _s3.delete_objects(keys)
@@ -107,7 +112,7 @@ def main():
     all_avstats.extend(v[1])
 
   # remove avinfos which exist in db already and same in program
-  log.info("Remove avinfos")
+  log.info("Remove duplicated avinfo")
   temp: Set[int] = set()  # db
   for item in all_avinfos:
     temp.add(item.aid)
