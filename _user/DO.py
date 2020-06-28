@@ -18,6 +18,7 @@ class UserProfileDO(Base):
   # table structure
   mid = Column(BIGINT, primary_key = True)
   name = Column(String(500))
+  fans = Column(INT)
   face = Column(String(1000))
   rank = Column(INT)
   level = Column(INT)

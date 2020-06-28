@@ -39,6 +39,10 @@ if __name__ == '__main__':
       """
       在性能不足的服务器上进行爬虫的工作, 保存获取的数据到cos
       """
+      # 每48h更新所有用户的fans数量
+      t: _user.UpdateUserFansThread = _user.UpdateUserFansThread()
+      t.start()
+
       delta = set_req_delta(datetime.now(timezone(timedelta(hours = 8))).hour)
       last_request_time = red.get('last_request_time')
       if last_request_time:

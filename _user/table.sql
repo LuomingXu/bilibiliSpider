@@ -3,6 +3,7 @@ create table bilibili
     mid            bigint        not null
         primary key,
     name           varchar(500)  null,
+    fans           int           null,
     face           varchar(1000) null,
     `rank`         int           null,
     level          int           null,
