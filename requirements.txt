@@ -1,1 +1,7 @@
 selfusepy==0.0.13
+sqlalchemy
+pymysql
+boto3
+beautifulsoup4
+lxml
+redis
