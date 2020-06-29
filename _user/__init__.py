@@ -82,16 +82,24 @@ def update_user_fans():
         log.info("mids: %s" % mids.__len__())
 
         for i, v in enumerate(mids):
-          mid = {'mid': v}
-          res: HTTPResponse = selfusepy.get('http://api.bilibili.com/x/web-interface/card', **mid)
-          j: dict = json.loads(res.data)
-          fans: int = int(j["data"]["follower"])
-          user: UserProfileDO = session.query(UserProfileDO).filter(UserProfileDO.mid == v).first()
-          user.fans = fans
-          session.commit()
-          file.append({"mid": v, "former_fans": user.fans, "fans": fans})
-          log.info("mid: %s, former fans: %s, fans: %s, delta: %s" % (v, user.fans, fans, fans - user.fans))
-          time.sleep(2)
+          try:
+            mid = {'mid': v}
+            res: HTTPResponse = selfusepy.get('http://api.bilibili.com/x/web-interface/card', **mid)
+            j: dict = json.loads(res.data)
+            fans: int = int(j["data"]["follower"])
+            user: UserProfileDO = session.query(UserProfileDO).filter(UserProfileDO.mid == v).first()
+            if user.fans is None or fans is None:
+              log.info("user: %s, user fans: %s, fans: %s" % (user, user.fans, fans))
+              raise Exception("User's fans can not be none!")
+
+            log.info("i: %s, mid: %s, former fans: %s, fans: %s, delta: %s" % (i, v, user.fans, fans, fans - user.fans))
+            user.fans = fans
+            session.commit()
+            file.append({"mid": v, "former_fans": user.fans, "fans": fans})
+            time.sleep(2)
+          except BaseException as e:
+            log.info("mid: %s, user: %s" % (v, user))
+            raise e
 
         session.close()
         last_timestamp = timestamp
