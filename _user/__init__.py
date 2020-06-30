@@ -31,10 +31,11 @@ def __main__(mids: Set[int]):
           """
           将获取到的信息与db中的数据进行对比更新
           """
-          if item[0].startswith('_'):
+          if item[0].startswith('_') or item[0] == "fans":
             """
             由于它是一个由sqlalchemy更改过的DO类, 会有一些sqlalchemy需要的属性, 
             但我们并不需要的属性, 剔除掉
+            配合更新fans的方法, 在此不对fans变量进行处理
             """
             continue
           try:
@@ -88,10 +89,8 @@ def update_user_fans():
             j: dict = json.loads(res.data)
             fans: int = int(j["data"]["follower"])
             user: UserProfileDO = session.query(UserProfileDO).filter(UserProfileDO.mid == v).first()
-            if user.fans is None or fans is None:
-              log.info("user: %s, user fans: %s, fans: %s" % (user, user.fans, fans))
-              raise Exception("User's fans can not be none!")
-
+            if fans is None:
+              raise Exception("mid: %s, fans can not be none" % v)
             log.info("i: %s, mid: %s, former fans: %s, fans: %s, delta: %s" % (i, v, user.fans, fans, fans - user.fans))
             user.fans = fans
             session.commit()
