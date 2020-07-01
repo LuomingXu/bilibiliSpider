@@ -91,7 +91,9 @@ def update_user_fans():
             user: UserProfileDO = session.query(UserProfileDO).filter(UserProfileDO.mid == v).first()
             if fans is None:
               raise Exception("mid: %s, fans can not be none" % v)
-            log.info("i: %s, mid: %s, former fans: %s, fans: %s, delta: %s" % (i, v, user.fans, fans, fans - user.fans))
+            # fans - user.fans if user.fans is not None else user.fans = 0
+            log.info("i: %s, mid: %s, former fans: %s, fans: %s, delta: %s" %
+                     (i, v, user.fans, fans, fans - user.fans if user.fans is not None else fans))
             user.fans = fans
             session.commit()
             file.append({"mid": v, "former_fans": user.fans, "fans": fans})
