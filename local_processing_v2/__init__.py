@@ -35,7 +35,7 @@ def analyze(q: Queue, data: MutableMapping[str, AV]) -> (List[AVInfoDO], List[AV
         stats.append(avStatDO)
   except BaseException as e:
     name = multiprocessing.current_process().name
-    _map: MutableMapping[str, str] = {name: traceback.format_exc()}
+    _map: MutableMapping[str, str] = {name: traceback.format_exc(), "filename": file_name}
     q.put(_map)
     print('Oops: ', name)
   finally:

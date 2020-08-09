@@ -56,10 +56,26 @@ def func(cid: int):
   print(multiprocessing.current_process().name + str(cid))
 
 
+def fig(n: int):
+  dp: dict = {k: 0 for k in range(1, n + 2)}
+  dp[1] = dp[2] = 1
+  for i in range(3, n + 1):
+    dp[i] = dp[i - 1] + dp[i - 2]
+  return dp[n]
+
+
 if __name__ == '__main__':
+
+  from subprocess import Popen
+  import subprocess
+  res = subprocess.run(["/usr/bin/bash", "pwd"], shell = True)
+  print(res)
+  exit(0)
+
   from config import DBSession, engine
   from danmaku.DO import AVCidsDO
   from danmaku.Entity import AvDanmakuCid
+
   values: list = list()
   obj: AvDanmakuCid = AvDanmakuCid()
   obj.cid = 142953222
@@ -83,6 +99,7 @@ if __name__ == '__main__':
     session.bulk_update_mappings(AVCidsDO, l)
   except BaseException:
     import traceback
+
     traceback.print_exc()
   else:
     print('success')

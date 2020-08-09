@@ -1,4 +1,4 @@
-image: luomingxu/docker:stable
+image: docker:stable-git
 
 variables:
   Cache_Location: /cache/$CI_PROJECT_NAME-$CI_PROJECT_ID-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
@@ -29,7 +29,7 @@ docker:
     - docker build -t $image .
     - docker tag $image $Image_Name:latest
   tags:
-    - docker-executor
+    - UCloud
 
 deploy:
   image:
@@ -44,4 +44,4 @@ deploy:
     - docker-compose version
     - docker-compose up -d
   tags:
-    - docker-executor
+    - UCloud

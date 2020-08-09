@@ -72,9 +72,9 @@ class AVInfoDO(Base):
     self.ctime = datetime.fromtimestamp(av.ctime, timezone(timedelta(hours = 8)))
     self.desc = av.desc
     self.state = av.state
-    self.attribute = av.attribute
+    self.attribute = av.attribute if 'attribute' in av.__dict__ else -1
     self.duration = av.duration
-    self.mission_id = av.mission_id if 'mission_id' in av.__dict__ is None else -1
+    self.mission_id = av.mission_id if 'mission_id' in av.__dict__ else -1
     self.dynamic = av.dynamic
     self.cid = av.cid
     self.bvid = av.bvid

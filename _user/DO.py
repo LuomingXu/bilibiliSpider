@@ -13,7 +13,7 @@ class UserProfileDO(Base):
   """
   用户
   """
-  __tablename__ = 'bilibili'
+  __tablename__ = 'user'
 
   # table structure
   mid = Column(BIGINT, primary_key = True)
