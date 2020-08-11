@@ -76,7 +76,9 @@ def main():
     exit(0)
   else:
     local_processing.multi_download(temp_file_dir, keys)
-    _s3.delete_objects(keys)
+    if not _s3.archive_object(keys):
+      log.error("Archive objects failed")
+      exit(0)
     log.info("Download files, DONE.")
 
   # reading data

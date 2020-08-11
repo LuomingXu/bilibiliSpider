@@ -43,13 +43,15 @@ async def hello(start_time: int):
   count += 1
 
   log.info('io start')
-  await io()
+  await asyncio.sleep(5)
   log.info('io done')
 
 
 async def io():
   log.info('io')
-  time.sleep(0.1)
+  time.sleep(5)
+  import asyncio
+  await asyncio.sleep(5)
 
 
 def func(cid: int):
@@ -65,9 +67,27 @@ def fig(n: int):
 
 
 if __name__ == '__main__':
+  # import asyncio
+  # loop = asyncio.get_event_loop()
+  # start_time: int = int(time.time())
+  # tasks = list()
+  # tasks.append(hello(start_time))
+  # tasks.append(hello(start_time))
+  # loop.run_until_complete(asyncio.wait(tasks))
+  # loop.close()
+  # exit(0)
+
+  from _s3 import s3_client
+
+  import _s3
+  # print(_s3.abort_part_upload("test.7z", "3cb281ad-6718-4a1f-9243-82ba1ef820ae"))
+  res = _s3.part_upload("C:/Users/MyCompanyDesktop/Desktop/test.7z", "test.7z")
+  print("main %s" % res)
+  exit(0)
 
   from subprocess import Popen
   import subprocess
+
   res = subprocess.run(["/usr/bin/bash", "pwd"], shell = True)
   print(res)
   exit(0)

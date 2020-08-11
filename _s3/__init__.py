@@ -1,5 +1,7 @@
 import json
 import os
+from multiprocessing import Pool
+from multiprocessing.pool import ApplyResult
 from typing import Set, MutableMapping
 
 import boto3
@@ -119,3 +121,65 @@ def get_object(key: str) -> Object:
   obj = selfusepy.parse_json(json.dumps(d, default = str), Object())
   obj.Body = d['Body']
   return obj
+
+
+def archive_object(keys: Set[str]) -> bool:
+  for key in keys:
+    res: dict = s3_client.copy_object(Bucket = 'archive',
+                                      CopySource = {'Bucket': bucket, 'Key': key},
+                                      Key = key, StorageClass = 'REDUCED_REDUNDANCY')
+    if 'ETag' in res['CopyObjectResult'].keys():
+      s3_client.delete_object(Bucket = bucket, Key = key)
+    else:
+      return False
+  return True
+
+
+def upload(data, upload_id, key, i):
+  log.info("upload file part: %s" % i)
+  res = s3_client.upload_part(Bucket = bucket, Key = key, PartNumber = i,
+                              UploadId = upload_id, Body = data)
+  part: dict = {
+    'ETag': res.get('ETag'),
+    'PartNumber': i
+  }
+  return part
+
+
+def part_upload(filepath: str, key: str) -> bool:
+  res: dict = s3_client.create_multipart_upload(Bucket = bucket, Key = key)
+  upload_id = res['UploadId']
+  log.info(upload_id)
+  pool = Pool(processes = 10)
+  res: Set[ApplyResult] = set()
+  parts: dict = {'Parts': list()}
+  try:
+    with open(filepath, 'r+b') as f:
+      i: int = 1
+      while True:
+        data = f.read(50 * 1024 * 1024)  # 50mb each part
+        if data == b'':
+          break
+        res.add(pool.apply_async(func = upload, args = (data, upload_id, key, i,)))
+        i += 1
+
+    pool.close()
+    pool.join()
+
+    for item in res:
+      v = item.get()
+      parts.get('Parts').append(v)
+
+    s3_client.complete_multipart_upload(Bucket = bucket, Key = key, UploadId = upload_id, MultipartUpload = parts)
+
+    return True
+  except Exception as e:
+    log.exception(e)
+    log.warn("Abort %s" % abort_part_upload(key, upload_id))
+    return False
+
+
+def abort_part_upload(key: str, upload_id: str) -> bool:
+  s3_client.abort_multipart_upload(Bucket = bucket, Key = key, UploadId = upload_id)
+
+  return True
