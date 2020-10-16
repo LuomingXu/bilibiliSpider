@@ -3,11 +3,9 @@ from datetime import datetime
 from selfusepy.utils import override_str
 from sqlalchemy import Column, BIGINT, DATETIME, String, INTEGER, DECIMAL
 from sqlalchemy.dialects.mysql import TINYINT
-from sqlalchemy.ext.declarative import declarative_base
 
+from config import Base
 from danmaku.Entity import AvDanmakuCid
-
-Base = declarative_base()
 
 
 @override_str

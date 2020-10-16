@@ -3,11 +3,9 @@ from datetime import datetime, timezone, timedelta
 from selfusepy.utils import override_str
 from sqlalchemy import Column, BIGINT, DATETIME, String, INTEGER, PrimaryKeyConstraint
 from sqlalchemy.dialects.mysql import TINYINT, SMALLINT
-from sqlalchemy.ext.declarative import declarative_base
 
+from config import Base
 from online.Entity import AV
-
-Base = declarative_base()
 
 
 @override_str

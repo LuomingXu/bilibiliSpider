@@ -1,4 +1,5 @@
 import json
+import platform
 import threading
 import time
 from typing import Set, List
@@ -76,7 +77,7 @@ def update_user_fans():
         session = DBSession()
 
         mids: Set[int] = set()
-        sql: str = "select mid from user"
+        sql: str = 'select mid from "user"'
         res: ResultProxy = session.execute(sql)
         for item in res.fetchall():
           mids.add(int(item[0]))
@@ -114,7 +115,8 @@ def update_user_fans():
   except BaseException as e:
     log.exception(e)
     import traceback
-    _email.send(email_to_addr, traceback.format_exc())
+    if platform.system() != "Windows":
+      _email.send(email_to_addr, traceback.format_exc())
 
 
 class UpdateUserFansThread(threading.Thread):

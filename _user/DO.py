@@ -1,11 +1,9 @@
+from selfusepy.utils import override_str
 from sqlalchemy import Column, String, BIGINT, INT
 from sqlalchemy.dialects.mysql import TINYINT
-from sqlalchemy.ext.declarative import declarative_base
 
 from _user.Entity import UserProfile
-from selfusepy.utils import override_str
-
-Base = declarative_base()
+from config import Base
 
 
 @override_str

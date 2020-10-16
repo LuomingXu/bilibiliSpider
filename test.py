@@ -1,9 +1,9 @@
 import multiprocessing
 import time
 
-from config import log
+from config import log, DBSession
 
-
+from _user.DO import UserProfileDO
 def consumer():
   r = ''
   t = ''
@@ -43,7 +43,7 @@ async def hello(start_time: int):
   count += 1
 
   log.info('io start')
-  await asyncio.sleep(5)
+  # await asyncio.sleep(5)
   log.info('io done')
 
 
@@ -67,6 +67,14 @@ def fig(n: int):
 
 
 if __name__ == '__main__':
+  session = DBSession()
+  print(session.query(UserProfileDO).all().__len__())
+
+  # for item in session.query(UserProfileDO).all():
+  #   print(item)
+
+
+  exit(0)
   # import asyncio
   # loop = asyncio.get_event_loop()
   # start_time: int = int(time.time())

@@ -95,16 +95,17 @@ if __name__ == '__main__':
       log.exception(e)
       import traceback, multiprocessing
 
-      flag = False
-      for item in e.args:
-        if issubclass(type(item), multiprocessing.managers.BaseProxy):
-          flag = True
-          s: str = ''
-          for i in range(item.qsize()):
-            for key, value in item.get().items():
-              s += key + value
-            s += '\n'
-          eprint(s)
-          _email.send(email_to_addr, s)
-      if not flag:
-        _email.send(email_to_addr, traceback.format_exc())
+      if platform.system() != "Windows":
+        flag = False
+        for item in e.args:
+          if issubclass(type(item), multiprocessing.managers.BaseProxy):
+            flag = True
+            s: str = ''
+            for i in range(item.qsize()):
+              for key, value in item.get().items():
+                s += key + value
+              s += '\n'
+            eprint(s)
+            _email.send(email_to_addr, s)
+        if not flag:
+          _email.send(email_to_addr, traceback.format_exc())

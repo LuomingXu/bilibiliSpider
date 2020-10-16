@@ -1,6 +1,6 @@
 selfusepy==0.0.13
 sqlalchemy
-pymysql
+psycopg2
 boto3
 beautifulsoup4
 lxml
