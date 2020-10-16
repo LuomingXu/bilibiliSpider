@@ -6,7 +6,7 @@ bilibili spider
 
 | |dependencies
 ---|------
-db|sqlalchemy, pymysql
+db|sqlalchemy, postgreSQL
 http|urllib3
 s3|boto3, minio
 xml|bs4, lxml
