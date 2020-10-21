@@ -1,6 +1,6 @@
 selfusepy==0.0.13
 sqlalchemy
-psycopg2
+psycopg2-binary
 boto3
 beautifulsoup4
 lxml
