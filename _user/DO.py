@@ -1,6 +1,6 @@
 from selfusepy.utils import override_str
-from sqlalchemy import Column, String, BIGINT, INT
-from sqlalchemy.dialects.mysql import TINYINT
+from sqlalchemy import Column, String, BIGINT, INT, BOOLEAN
+from sqlalchemy.dialects.postgresql import SMALLINT
 
 from _user.Entity import UserProfile
 from config import Base
@@ -22,12 +22,12 @@ class UserProfileDO(Base):
   level = Column(INT)
   birthday = Column(String(50))
   sign = Column(String(500))
-  fans_badge = Column(TINYINT)
+  fans_badge = Column(BOOLEAN)
   vip_type = Column(INT)
   vip_status = Column(INT)
   official_title = Column(String(100))
-  official_type = Column(TINYINT)
-  official_role = Column(TINYINT)
+  official_type = Column(SMALLINT)
+  official_role = Column(SMALLINT)
 
   def __init__(self, userProfile: UserProfile):
     self.mid = userProfile.data.mid

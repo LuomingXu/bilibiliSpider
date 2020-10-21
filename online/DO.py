@@ -1,8 +1,8 @@
 from datetime import datetime, timezone, timedelta
 
 from selfusepy.utils import override_str
-from sqlalchemy import Column, BIGINT, DATETIME, String, INTEGER, PrimaryKeyConstraint
-from sqlalchemy.dialects.mysql import TINYINT, SMALLINT
+from sqlalchemy import Column, BIGINT, DATETIME, String, INTEGER, PrimaryKeyConstraint, BOOLEAN
+from sqlalchemy.dialects.postgresql import SMALLINT
 
 from config import Base
 from online.Entity import AV
@@ -38,21 +38,21 @@ class AVInfoDO(Base):
   bvid = Column(String(255))
   owner_mid = Column(BIGINT)
   stat_aid = Column(BIGINT)
-  right_bp = Column(TINYINT)
-  right_elec = Column(TINYINT)
-  right_download = Column(TINYINT)
-  right_movie = Column(TINYINT)
-  right_pay = Column(TINYINT)
-  right_hd5 = Column(TINYINT)
-  right_no_reprint = Column(TINYINT)
-  right_autoplay = Column(TINYINT)
-  right_ugc_pay = Column(TINYINT)
-  right_is_cooperation = Column(TINYINT)
-  right_ugc_pay_preview = Column(TINYINT)
-  right_no_background = Column(TINYINT)
+  right_bp = Column(BOOLEAN)
+  right_elec = Column(BOOLEAN)
+  right_download = Column(BOOLEAN)
+  right_movie = Column(BOOLEAN)
+  right_pay = Column(BOOLEAN)
+  right_hd5 = Column(BOOLEAN)
+  right_no_reprint = Column(BOOLEAN)
+  right_autoplay = Column(BOOLEAN)
+  right_ugc_pay = Column(BOOLEAN)
+  right_is_cooperation = Column(BOOLEAN)
+  right_ugc_pay_preview = Column(BOOLEAN)
+  right_no_background = Column(BOOLEAN)
   dimension_width = Column(INTEGER)
   dimension_height = Column(INTEGER)
-  dimension_rotate = Column(TINYINT)
+  dimension_rotate = Column(BOOLEAN)
   last_update_time = Column(DATETIME, onupdate = datetime.now(timezone(timedelta(hours = 8))))
   create_time = Column(DATETIME, default = datetime.now(timezone(timedelta(hours = 8))))
 
@@ -111,8 +111,8 @@ class AVStatDO(Base):
   favorite = Column(INTEGER)
   coin = Column(INTEGER)
   share = Column(INTEGER)
-  rank = Column(TINYINT)
-  now_rank = Column(TINYINT)
+  rank = Column(SMALLINT)
+  now_rank = Column(SMALLINT)
   his_rank = Column(SMALLINT)
   like = Column(INTEGER)
   dislike = Column(INTEGER)
